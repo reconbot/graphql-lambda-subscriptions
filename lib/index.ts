@@ -31,3 +31,6 @@ export const createInstance = (opts: ServerArgs) => {
 
 export { prepareResolvers } from './utils'
 export * from './pubsub/subscribe'
+
+export * from './types'
+export { Subscription, Connection } from './model'

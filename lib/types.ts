@@ -52,7 +52,7 @@ export type ServerArgs = {
   onError?: (error: any, context: any) => void;
 };
 
-type MaybePromise<T> = T | Promise<T>;
+export type MaybePromise<T> = T | Promise<T>;
 
 export type ServerClosure = {
   mapper: DataMapper;
@@ -62,7 +62,7 @@ export type ServerClosure = {
   };
 } & Omit<ServerArgs, 'tableNames'>;
 
-type TableNames = {
+export type TableNames = {
   connections: string;
   subscriptions: string;
 };
