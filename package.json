@@ -14,8 +14,8 @@
   "homepage": "https://github.com/reconbot/graphql-lambda-subscriptions",
   "scripts": {
     "test": "mocha",
-    "lint": "tsc && eslint lib/*.ts",
-    "format": "eslint lib/*.ts --fix",
+    "lint": "tsc && eslint lib/**/*.ts",
+    "format": "eslint lib/**/*.ts --fix",
     "clean": "rm -rf dist-ts dist",
     "build": "npm run clean && tsc -p tsconfig-build.json && rollup -c && ts-eager bundle-types",
     "prepublishOnly": "npm run build",

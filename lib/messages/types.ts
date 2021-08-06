@@ -1,4 +1,4 @@
-import { APIGatewayWebSocketEvent, ServerClosure } from '../types';
+import { APIGatewayWebSocketEvent, ServerClosure } from '../types'
 
 export type MessageHandler<T> = (
   c: ServerClosure

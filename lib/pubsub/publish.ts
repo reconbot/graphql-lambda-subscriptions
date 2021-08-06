@@ -1,13 +1,14 @@
+/* eslint-disable @typescript-eslint/ban-types */
 import {
   attributeNotExists,
   equals,
   ConditionExpression,
-} from '@aws/dynamodb-expressions';
-import { parse, execute } from 'graphql';
-import { MessageType } from 'graphql-ws';
-import { Subscription } from '../model';
-import { ServerClosure } from '../types';
-import { constructContext, sendMessage } from '../utils';
+} from '@aws/dynamodb-expressions'
+import { parse, execute } from 'graphql'
+import { MessageType } from 'graphql-ws'
+import { Subscription } from '../model'
+import { ServerClosure } from '../types'
+import { constructContext, sendMessage } from '../utils'
 
 type PubSubEvent = {
   topic: string;
@@ -15,7 +16,7 @@ type PubSubEvent = {
 };
 
 export const publish = (c: ServerClosure) => async (event: PubSubEvent) => {
-  const subscriptions = await getFilteredSubs(c)(event);
+  const subscriptions = await getFilteredSubs(c)(event)
   const iters = subscriptions.map(async (sub) => {
     const payload = await execute(
       c.schema,
@@ -24,8 +25,8 @@ export const publish = (c: ServerClosure) => async (event: PubSubEvent) => {
       await constructContext(c)(sub),
       sub.subscription.variables,
       sub.subscription.operationName,
-      undefined
-    );
+      undefined,
+    )
 
     await sendMessage(c)({
       ...sub.requestContext,
@@ -34,56 +35,56 @@ export const publish = (c: ServerClosure) => async (event: PubSubEvent) => {
         type: MessageType.Next,
         payload,
       },
-    });
-  });
-  return await Promise.all(iters);
-};
+    })
+  })
+  return await Promise.all(iters)
+}
 
 const getFilteredSubs =
   (c: Omit<ServerClosure, 'gateway'>) =>
-  async (event: PubSubEvent): Promise<Subscription[]> => {
-    const flattenPayload = flatten(event.payload);
-    const iterator = c.mapper.query(
-      c.model.Subscription,
-      { topic: equals(event.topic) },
-      {
-        filter: {
-          type: 'And',
-          conditions: Object.entries(flattenPayload).reduce(
-            (p, [key, value]) => [
-              ...p,
-              {
-                type: 'Or',
-                conditions: [
-                  {
-                    ...attributeNotExists(),
-                    subject: `filter.${key}`,
-                  },
-                  {
-                    ...equals(value),
-                    subject: `filter.${key}`,
-                  },
-                ],
-              },
-            ],
-            [] as ConditionExpression[]
-          ),
+    async (event: PubSubEvent): Promise<Subscription[]> => {
+      const flattenPayload = flatten(event.payload)
+      const iterator = c.mapper.query(
+        c.model.Subscription,
+        { topic: equals(event.topic) },
+        {
+          filter: {
+            type: 'And',
+            conditions: Object.entries(flattenPayload).reduce(
+              (p, [key, value]) => [
+                ...p,
+                {
+                  type: 'Or',
+                  conditions: [
+                    {
+                      ...attributeNotExists(),
+                      subject: `filter.${key}`,
+                    },
+                    {
+                      ...equals(value),
+                      subject: `filter.${key}`,
+                    },
+                  ],
+                },
+              ],
+            [] as ConditionExpression[],
+            ),
+          },
+          indexName: 'TopicIndex',
         },
-        indexName: 'TopicIndex',
-      }
-    );
+      )
 
-    // Aggregate all targets
-    const subs: Subscription[] = [];
-    for await (const sub of iterator) {
-      subs.push(sub);
+      // Aggregate all targets
+      const subs: Subscription[] = []
+      for await (const sub of iterator) {
+        subs.push(sub)
+      }
+
+      return subs
     }
 
-    return subs;
-  };
-
 export const flatten = (
-  obj: object
+  obj: object,
 ): Record<string, number | string | boolean> =>
   Object.entries(obj).reduce((p, [k1, v1]) => {
     if (v1 && typeof v1 === 'object') {
@@ -92,12 +93,12 @@ export const flatten = (
           ...prev,
           [`${k1}.${k2}`]: v2,
         }),
-        {}
-      );
+        {},
+      )
       return {
         ...p,
         ...flatten(next),
-      };
+      }
     }
 
     if (
@@ -105,8 +106,8 @@ export const flatten = (
       typeof v1 === 'number' ||
       typeof v1 === 'boolean'
     ) {
-      return { ...p, [k1]: v1 };
+      return { ...p, [k1]: v1 }
     }
 
-    return p;
-  }, {});
+    return p
+  }, {})
