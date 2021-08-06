@@ -1,0 +1,14 @@
+.eslintrc.js
+.github
+.gitignore
+.travis.yml
+.vscode
+api-extractor.json
+bundle-types.ts
+dist-ts
+lib
+package-lock.json
+rollup.config.js
+tsconfig-build.json
+tsconfig.json
+tests
