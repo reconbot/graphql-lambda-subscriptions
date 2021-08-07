@@ -1,12 +1,8 @@
 import { parse } from 'graphql'
 import { CompleteMessage } from 'graphql-ws'
 import { buildExecutionContext } from 'graphql/execution/execute'
-import {
-  constructContext,
-  deleteConnection,
-  getResolverAndArgs,
-  promisify,
-} from '../utils'
+import { deleteConnection } from '../utils/aws'
+import { constructContext, getResolverAndArgs } from '../utils/graphql'
 import { MessageHandler } from './types'
 
 /** Handler function for 'complete' message. */
@@ -14,7 +10,7 @@ export const complete: MessageHandler<CompleteMessage> =
   (c) =>
     async ({ event, message }) => {
       try {
-        await promisify(() => c.onComplete?.({ event, message }))
+        await c.onComplete?.({ event, message })
 
         const topicSubscriptions = await c.mapper.query(c.model.Subscription, {
           id: `${event.requestContext.connectionId!}|${message.id}`,
@@ -57,7 +53,7 @@ export const complete: MessageHandler<CompleteMessage> =
 
         await Promise.all(deletions)
       } catch (err) {
-        await promisify(() => c.onError?.(err, { event, message }))
+        await c.onError?.(err, { event, message })
         await deleteConnection(c)(event.requestContext)
       }
     }

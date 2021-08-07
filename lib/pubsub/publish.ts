@@ -6,14 +6,15 @@ import {
 } from '@aws/dynamodb-expressions'
 import { parse, execute } from 'graphql'
 import { MessageType } from 'graphql-ws'
-import { Subscription } from '../model'
+import { Subscription } from '../model/Subscription'
 import { ServerClosure } from '../types'
-import { constructContext, sendMessage } from '../utils'
+import { sendMessage } from '../utils/aws'
+import { constructContext } from '../utils/graphql'
 
 type PubSubEvent = {
-  topic: string;
-  payload: any;
-};
+  topic: string
+  payload: any
+}
 
 export const publish = (c: ServerClosure) => async (event: PubSubEvent) => {
   const subscriptions = await getFilteredSubs(c)(event)

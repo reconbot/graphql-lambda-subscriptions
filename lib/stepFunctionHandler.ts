@@ -1,19 +1,18 @@
 import { MessageType } from 'graphql-ws'
-import { assign } from './model'
 import { ServerClosure, StateFunctionInput } from './types'
-import { sendMessage, deleteConnection } from './utils'
+import { deleteConnection, sendMessage } from './utils/aws'
 
 export const handleStateMachineEvent =
   (c: ServerClosure) =>
     async (input: StateFunctionInput): Promise<StateFunctionInput> => {
-      const connection = assign(new c.model.Connection(), {
+      const connection = Object.assign(new c.model.Connection(), {
         id: input.connectionId,
       })
 
       // Initial state - send ping message
       if (input.state === 'PING') {
         await sendMessage(c)({ ...input, message: { type: MessageType.Ping } })
-        await c.mapper.update(assign(connection, { hasPonged: false }), {
+        await c.mapper.update(Object.assign(connection, { hasPonged: false }), {
           onMissing: 'skip',
         })
         return {

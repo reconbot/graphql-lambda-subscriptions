@@ -1,9 +1,11 @@
 import { DataMapper } from '@aws/dynamodb-data-mapper'
 import { ServerArgs } from './types'
 import { publish } from './pubsub/publish'
-import { createModel, Connection, Subscription } from './model'
+import { createModel } from './model/createModel'
+import { Subscription } from './model/Subscription'
 import { handleGatewayEvent } from './gateway'
 import { handleStateMachineEvent } from './stepFunctionHandler'
+import { Connection } from './model/Connection'
 
 export const createInstance = (opts: ServerArgs) => {
   const closure = {
@@ -29,8 +31,9 @@ export const createInstance = (opts: ServerArgs) => {
   }
 }
 
-export { prepareResolvers } from './utils'
+export { prepareResolvers } from './utils/graphql'
 export * from './pubsub/subscribe'
 
 export * from './types'
-export { Subscription, Connection } from './model'
+export { Subscription } from './model/Subscription'
+export { Connection } from './model/Connection'

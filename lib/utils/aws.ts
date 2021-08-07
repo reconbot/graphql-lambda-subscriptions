@@ -23,7 +23,7 @@ export const sendMessage =
       | CompleteMessage
       | ErrorMessage
       | PingMessage
-      | PongMessage;
+      | PongMessage
   } & Pick<
     APIGatewayWebSocketRequestContext,
     'connectionId' | 'domainName' | 'stage'

@@ -6,15 +6,9 @@ import {
   execute,
 } from 'graphql/execution/execute'
 import { MessageHandler } from './types'
-import {
-  constructContext,
-  deleteConnection,
-  getResolverAndArgs,
-  promisify,
-  sendMessage,
-} from '../utils'
-import { assign } from '../model'
 import { ServerClosure, SubscribeHandler } from '../types'
+import { constructContext, getResolverAndArgs } from '../utils/graphql'
+import { deleteConnection, sendMessage } from '../utils/aws'
 
 /** Handler function for 'subscribe' message. */
 export const subscribe: MessageHandler<SubscribeMessage> =
@@ -23,11 +17,11 @@ export const subscribe: MessageHandler<SubscribeMessage> =
       try {
         const [connection] = await Promise.all([
           await c.mapper.get(
-            assign(new c.model.Connection(), {
+            Object.assign(new c.model.Connection(), {
               id: event.requestContext.connectionId!,
             }),
           ),
-          await promisify(() => c.onSubscribe?.({ event, message })),
+          await c.onSubscribe?.({ event, message }),
         ])
         const connectionParams = connection.payload || {}
 
@@ -112,7 +106,7 @@ export const subscribe: MessageHandler<SubscribeMessage> =
         ).definitions // Access subscribe instance
         await Promise.all(
           topicDefinitions.map(async ({ topic, filter }) => {
-            const subscription = assign(new c.model.Subscription(), {
+            const subscription = Object.assign(new c.model.Subscription(), {
               id: `${event.requestContext.connectionId}|${message.id}`,
               topic,
               filter: filter || {},
@@ -130,7 +124,7 @@ export const subscribe: MessageHandler<SubscribeMessage> =
           }),
         )
       } catch (err) {
-        await promisify(() => c.onError?.(err, { event, message }))
+        await c.onError?.(err, { event, message })
         await deleteConnection(c)(event.requestContext)
       }
     }

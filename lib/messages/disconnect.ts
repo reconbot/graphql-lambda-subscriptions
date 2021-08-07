@@ -1,16 +1,15 @@
 import { parse } from 'graphql'
 import { equals } from '@aws/dynamodb-expressions'
 import { buildExecutionContext } from 'graphql/execution/execute'
-import { constructContext, getResolverAndArgs, promisify } from '../utils'
 import { MessageHandler } from './types'
-import { assign } from '../model'
+import { constructContext, getResolverAndArgs } from '../utils/graphql'
 
 /** Handler function for 'disconnect' message. */
 export const disconnect: MessageHandler<null> =
   (c) =>
     async ({ event }) => {
       try {
-        await promisify(() => c.onDisconnect?.({ event }))
+        await c.onDisconnect?.({ event })
 
         const entities = await c.mapper.query(
           c.model.Subscription,
@@ -63,12 +62,12 @@ export const disconnect: MessageHandler<null> =
           ...deletions,
           // Delete connection
           c.mapper.delete(
-            assign(new c.model.Connection(), {
+            Object.assign(new c.model.Connection(), {
               id: event.requestContext.connectionId!,
             }),
           ),
         ])
       } catch (err) {
-        await promisify(() => c.onError?.(err, { event }))
+        await c.onError?.(err, { event })
       }
     }

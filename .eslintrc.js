@@ -16,26 +16,22 @@ module.exports = {
     '@typescript-eslint',
   ],
   rules: {
-    indent: [
-      'error',
-      2,
-    ],
-    'linebreak-style': [
-      'error',
-      'unix',
-    ],
-    quotes: [
-      'error',
-      'single',
-    ],
-    semi: [
-      'error',
-      'never',
-    ],
+    indent: [ 'error', 2 ],
+    'linebreak-style': [ 'error', 'unix' ],
+    quotes: [ 'error', 'single' ],
+    semi: 'off',
+    '@typescript-eslint/semi': ['error', 'never'],
     'quote-props': ['error', 'as-needed'],
     'no-param-reassign': 'error',
     'comma-dangle': ['error', 'always-multiline'],
     'space-infix-ops': ['error'],
     'no-multi-spaces': ['error'],
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    '@typescript-eslint/member-delimiter-style': ['error', {
+      multiline: { delimiter: 'none' },
+      singleline: { delimiter: 'comma', requireLast: false },
+      multilineDetection: 'last-member',
+    }],
   },
 }

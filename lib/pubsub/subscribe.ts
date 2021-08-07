@@ -9,7 +9,7 @@ import {
 /** Creates subscribe handler */
 export const subscribe =
   (topic: string) =>
-    (...args: SubscribeArgs) =>
+    (..._args: SubscribeArgs) =>
       createHandler({ definitions: [{ topic }] })
 
 /** Add filter to subscribe handler */

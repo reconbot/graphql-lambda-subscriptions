@@ -1,6 +1,6 @@
 import { attribute, hashKey } from '@aws/dynamodb-data-mapper-annotations'
 import { APIGatewayWebSocketRequestContext } from '../types'
-import { addHours } from '../utils'
+import { addHours } from '../utils/date'
 
 /**
  * Connection established with `connection_init`
@@ -8,24 +8,24 @@ import { addHours } from '../utils'
 export class Connection {
   /* ConnectionID */
   @hashKey({ type: 'String' })
-  id: string;
+  id: string
 
   /** Time of creation */
   @attribute({ defaultProvider: () => new Date() })
-  createdAt: Date;
+  createdAt: Date
 
   /** Request context from $connect event */
   @attribute()
-  requestContext: APIGatewayWebSocketRequestContext;
+  requestContext: APIGatewayWebSocketRequestContext
 
   /** connection_init payload (post-parse) */
   @attribute()
-  payload: Record<string, string>;
+  payload: Record<string, string>
 
   @attribute({ defaultProvider: () => addHours(new Date(), 3) })
-  ttl: Date;
+  ttl: Date
 
   /** has a pong been returned */
   @attribute({ defaultProvider: () => false })
-  hasPonged: boolean;
+  hasPonged: boolean
 }
