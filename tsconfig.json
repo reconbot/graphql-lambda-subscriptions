@@ -2,18 +2,19 @@
   "compilerOptions": {
     "noEmit": true,
     "allowJs": false,
-    "target": "ES2019",
+    "target": "es2020",
     "moduleResolution": "node",
     "module": "commonjs",
     "noImplicitAny": false,
     "strictNullChecks": true,
     "declaration": true,
     "importHelpers": true,
-    "experimentalDecorators": true /* Enables experimental support for ES7 decorators. */,
-    "emitDecoratorMetadata": true /* Enables experimental support for emitting type metadata for decorators. */
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "forceConsistentCasingInFileNames": true
   },
   "include": [
-    "lib/*",
+    "lib/**/*.ts",
   ],
   "exclude": [
     "node_modules"

@@ -1,8 +1,7 @@
 import { StepFunctions } from 'aws-sdk'
 import { ConnectionInitMessage, MessageType } from 'graphql-ws'
-import { assign } from '../model'
 import { StateFunctionInput } from '../types'
-import { sendMessage, deleteConnection, promisify } from '../utils'
+import { deleteConnection, sendMessage } from '../utils/aws'
 import { MessageHandler } from './types'
 
 /** Handler function for 'connection_init' message. */
@@ -11,7 +10,7 @@ export const connection_init: MessageHandler<ConnectionInitMessage> =
     async ({ event, message }) => {
       try {
         const res = c.onConnectionInit
-          ? await promisify(() => c.onConnectionInit!({ event, message }))
+          ? await c.onConnectionInit({ event, message })
           : message.payload
 
         if (c.pingpong) {
@@ -32,7 +31,7 @@ export const connection_init: MessageHandler<ConnectionInitMessage> =
         }
 
         // Write to persistence
-        const connection = assign(new c.model.Connection(), {
+        const connection = Object.assign(new c.model.Connection(), {
           id: event.requestContext.connectionId!,
           requestContext: event.requestContext,
           payload: res,
@@ -43,7 +42,7 @@ export const connection_init: MessageHandler<ConnectionInitMessage> =
           message: { type: MessageType.ConnectionAck },
         })
       } catch (err) {
-        await promisify(() => c.onError?.(err, { event, message }))
+        await c.onError?.(err, { event, message })
         await deleteConnection(c)(event.requestContext)
       }
     }

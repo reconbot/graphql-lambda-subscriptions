@@ -1,6 +1,5 @@
-import { MessageType, PongMessage } from 'graphql-ws'
-import { assign } from '../model'
-import { sendMessage, deleteConnection, promisify } from '../utils'
+import { PongMessage } from 'graphql-ws'
+import { deleteConnection } from '../utils/aws'
 import { MessageHandler } from './types'
 
 /** Handler function for 'pong' message. */
@@ -8,9 +7,9 @@ export const pong: MessageHandler<PongMessage> =
   (c) =>
     async ({ event, message }) => {
       try {
-        await promisify(() => c.onPong?.({ event, message }))
+        await c.onPong?.({ event, message })
         await c.mapper.update(
-          assign(new c.model.Connection(), {
+          Object.assign(new c.model.Connection(), {
             id: event.requestContext.connectionId!,
             hasPonged: true,
           }),
@@ -19,7 +18,7 @@ export const pong: MessageHandler<PongMessage> =
           },
         )
       } catch (err) {
-        await promisify(() => c.onError?.(err, { event, message }))
+        await c.onError?.(err, { event, message })
         await deleteConnection(c)(event.requestContext)
       }
     }

@@ -5,13 +5,11 @@ import {
   ServerClosure,
   WebsocketResponse,
 } from './types'
-import {
-  complete,
-  connection_init,
-  subscribe,
-  disconnect,
-  ping,
-} from './messages'
+import { disconnect } from './messages/disconnect'
+import { ping } from './messages/ping'
+import { complete } from './messages/complete'
+import { subscribe } from './messages/subscribe'
+import { connection_init } from './messages/connection_init'
 import { pong } from './messages/pong'
 
 export const handleGatewayEvent =
