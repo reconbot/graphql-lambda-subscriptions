@@ -1,5 +1,4 @@
 # Graphql Lambda Subscriptions
-[![codecov](https://codecov.io/gh/reconbot/graphql-lambda-subscriptions/branch/master/graph/badge.svg)](https://codecov.io/gh/reconbot/graphql-lambda-subscriptions)
 [![Release](https://github.com/reconbot/graphql-lambda-subscriptions/actions/workflows/test.yml/badge.svg)](https://github.com/reconbot/graphql-lambda-subscriptions/actions/workflows/test.yml)
 
 This is a fork of [subscriptionless](https://github.com/andyrichardson/subscriptionless) that is built to work with [Architect](https://arc.codes) and tested  with the [Architect Sandbox](https://arc.codes/docs/en/reference/cli/sandbox). There's no reason why it wont work with Serverless or other deploy tools but their support is not a goal.
