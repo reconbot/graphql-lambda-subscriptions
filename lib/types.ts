@@ -107,3 +107,8 @@ export interface APIGatewayWebSocketRequestContext
 export interface APIGatewayWebSocketEvent extends APIGatewayProxyEvent {
   requestContext: APIGatewayWebSocketRequestContext
 }
+
+export type PubSubEvent = {
+  topic: string
+  payload: any
+}

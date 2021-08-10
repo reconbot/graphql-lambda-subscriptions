@@ -1,5 +1,9 @@
-// learn more about WebSocket functions here: https://arc.codes/primitives/ws
-exports.handler = async function ws (req) {
-  console.log(JSON.stringify(req, null, 2))
-  return {statusCode: 200}
+const { buildSubscriptionServer } = require('../../../lib/graphql')
+
+const serverPromise = buildSubscriptionServer()
+
+exports.handler = async function ws (event) {
+  console.log('default', event)
+  const server = await serverPromise
+  return server.gatewayHandler(event)
 }

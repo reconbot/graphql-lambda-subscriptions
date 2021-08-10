@@ -1,10 +1,17 @@
-exports.handler = async function http (req) {
+const { buildSubscriptionServer } = require('../../../lib/graphql')
+
+const serverPromise = buildSubscriptionServer()
+
+exports.handler = async function http () {
+  // console.log('get /')
+  const server = await serverPromise
+
+  await server.publish({ topic: 'greetings', payload: 'hi' })
+  await server.publish({ topic: 'greetings', payload: 'hey!' })
+  await server.complete({ topic: 'greetings', payload: 'hi' })
+
   return {
     statusCode: 200,
-    headers: {
-      'cache-control': 'no-cache, no-store, must-revalidate, max-age=0, s-maxage=0',
-      'content-type': 'text/html; charset=utf8',
-    },
-    body: 'hi',
+    body: '',
   }
 }

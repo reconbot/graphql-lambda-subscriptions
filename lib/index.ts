@@ -1,6 +1,7 @@
 import { DataMapper } from '@aws/dynamodb-data-mapper'
 import { ServerArgs } from './types'
 import { publish } from './pubsub/publish'
+import { complete } from './pubsub/complete'
 import { createModel } from './model/createModel'
 import { Subscription } from './model/Subscription'
 import { handleGatewayEvent } from './gateway'
@@ -28,6 +29,7 @@ export const createInstance = (opts: ServerArgs) => {
     gatewayHandler: handleGatewayEvent(closure),
     stateMachineHandler: handleStateMachineEvent(closure),
     publish: publish(closure),
+    complete: complete(closure),
   }
 }
 
