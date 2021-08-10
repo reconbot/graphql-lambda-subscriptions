@@ -6,7 +6,7 @@ const FakeApiGatewayManagementApi = {
   postToConnection({ ConnectionId: id, Data }) {
     return {
       async promise() {
-        console.log('postToConnection', {id, Data })
+        // console.log('postToConnection', {id, Data })
         const payload = JSON.parse(Data)
         await ws.send({ id, payload })
       },
@@ -15,7 +15,7 @@ const FakeApiGatewayManagementApi = {
   deleteConnection({ ConnectionId }) {
     return {
       async promise() {
-        console.log({ ConnectionId }, 'deleteConnection not implemented')
+        // console.log({ ConnectionId }, 'deleteConnection not implemented')
       },
     }
   },

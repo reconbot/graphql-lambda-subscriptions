@@ -14,6 +14,22 @@ after(async () => {
   await sandBoxEnd()
 })
 
+const pollURl = (url: string, timeout: number) => {
+  const interval = setInterval(() => {
+    fetch(url)
+  }, timeout)
+
+  fetch(url)
+
+  const cancel = () => {
+    if (interval) {
+      clearInterval(interval)
+    }
+  }
+
+  return cancel
+}
+
 const executeQuery = async (query: string) => {
   const client = createClient({
     url: 'ws://localhost:3339',
@@ -65,11 +81,10 @@ describe('Basic Events', () => {
 
   it('subscribes', async () => {
     const { values, unsubscribe } = await executeSubscription('subscription { greetings }')
-    // this timeout sucks
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    await fetch('http://localhost:3339/')
+    const cancelFetch = pollURl('http://localhost:3339/', 1000)
     const greetings = await collect(map((value: { greetings: string }) => value.greetings, values))
     assert.deepEqual(greetings, ['hi', 'hey!'])
+    cancelFetch()
     unsubscribe()
   })
 })
