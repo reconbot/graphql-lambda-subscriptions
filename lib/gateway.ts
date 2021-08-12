@@ -37,7 +37,7 @@ export const handleGatewayEvent =
         const message = JSON.parse(event.body!)
 
         if (message.type === MessageType.ConnectionInit) {
-          await connection_init(c)({ event, message })
+          await connection_init({ c, event, message })
           return {
             statusCode: 200,
             body: '',
@@ -45,7 +45,7 @@ export const handleGatewayEvent =
         }
 
         if (message.type === MessageType.Subscribe) {
-          await subscribe(c)({ event, message })
+          await subscribe({ c, event, message })
           return {
             statusCode: 200,
             body: '',
@@ -53,7 +53,7 @@ export const handleGatewayEvent =
         }
 
         if (message.type === MessageType.Complete) {
-          await complete(c)({ event, message })
+          await complete({ c, event, message })
           return {
             statusCode: 200,
             body: '',
@@ -61,7 +61,7 @@ export const handleGatewayEvent =
         }
 
         if (message.type === MessageType.Ping) {
-          await ping(c)({ event, message })
+          await ping({ c, event, message })
           return {
             statusCode: 200,
             body: '',
@@ -69,7 +69,7 @@ export const handleGatewayEvent =
         }
 
         if (message.type === MessageType.Pong) {
-          await pong(c)({ event, message })
+          await pong({ c, event, message })
           return {
             statusCode: 200,
             body: '',
@@ -78,7 +78,7 @@ export const handleGatewayEvent =
       }
 
       if (event.requestContext.eventType === 'DISCONNECT') {
-        await disconnect(c)({ event, message: null })
+        await disconnect({ c, event, message: null })
         return {
           statusCode: 200,
           body: '',

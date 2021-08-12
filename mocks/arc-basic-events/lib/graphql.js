@@ -6,12 +6,13 @@ const FakeApiGatewayManagementApi = {
   postToConnection({ ConnectionId: id, Data }) {
     return {
       async promise() {
-        // console.log('postToConnection', {id, Data })
+        // console.log('postToConnection', { id, Data })
         const payload = JSON.parse(Data)
         await ws.send({ id, payload })
       },
     }
   },
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   deleteConnection({ ConnectionId }) {
     return {
       async promise() {
@@ -37,9 +38,14 @@ const resolvers = {
   },
   Subscription: {
     greetings:{
-      subscribe: (...args) => {
-        return subscribe('greetings')(...args)
-      },
+      subscribe: subscribe('greetings', {
+        async onAfterSubscribe(_, __, {publish, complete}) {
+          await publish({ topic: 'greetings', payload: 'yoyo' })
+          await publish({ topic: 'greetings', payload: 'hows it' })
+          await publish({ topic: 'greetings', payload: 'howdy' })
+          await complete({ topic: 'greetings', payload: 'wtf' })
+        },
+      }),
       resolve: ({payload}) => {
         return payload
       },
@@ -63,15 +69,22 @@ const buildSubscriptionServer = async () => {
     return actualTableName
   }
 
-  return createInstance({
+  const server = createInstance({
     dynamodb: arcTables.db,
     schema,
+    context: () => {
+      return {
+        publish: server.publish,
+        complete: server.complete,
+      }
+    },
     tableNames: {
       connections: ensureName('Connection'),
       subscriptions: ensureName('Subscription'),
     },
     apiGatewayManagementApi: FakeApiGatewayManagementApi,
   })
+  return server
 }
 
 module.exports = { buildSubscriptionServer }

@@ -419,23 +419,6 @@ Side effect handlers can be declared on subscription fields to handle `onSubscri
 
 <details>
 
-<summary>📖 Enabling side effects</summary>
-
-For `onSubscribe` and `onComplete` side effects to work, resolvers must first be passed to `prepareResolvers` prior to schema construction.
-
-```ts
-import { prepareResolvers } from 'subscriptionless/subscribe';
-
-const schema = makeExecutableSchema({
-  typedefs,
-  resolvers: prepareResolvers(resolvers),
-});
-```
-
-</details>
-
-<details>
-
 <summary>📖 Adding side-effect handlers</summary>
 
 ```ts
@@ -445,13 +428,12 @@ export const resolver = {
       resolve: (event, args, context) => {
         /* ... */
       },
-      subscribe: subscribe('MY_TOPIC'),
-      onSubscribe: (root, args) => {
-        /* Do something on subscription start */
-      },
-      onComplete: (root, args) => {
-        /* Do something on subscription stop */
-      },
+      subscribe: subscribe('MY_TOPIC', {
+        // filter?: object | ((...args: SubscribeArgs) => object)
+        // onSubscribe?: (...args: SubscribeArgs) => void | Promise<void>
+        // onComplete?: (...args: SubscribeArgs) => void | Promise<void>
+        // onAfterSubscribe?: (...args: SubscribeArgs) => PubSubEvent | Promise<PubSubEvent> | undefined | Promise<undefined>
+      }),
     },
   },
 };
