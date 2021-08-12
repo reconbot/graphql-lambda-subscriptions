@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import {
+  PubSubEvent,
   SubscribeArgs,
   SubscribeHandler,
   SubscribePsuedoIterable,
@@ -7,45 +8,44 @@ import {
 } from '../types'
 
 /** Creates subscribe handler */
-export const subscribe =
-  (topic: string) =>
-    (..._args: SubscribeArgs) =>
-      createHandler({ definitions: [{ topic }] })
+export const subscribe = (
+  topic: string,
+  {
+    filter,
+    onSubscribe,
+    onComplete,
+    onAfterSubscribe,
+  }: {
+    filter?: object | ((...args: SubscribeArgs) => object)
+    onSubscribe?: (...args: SubscribeArgs) => void | Promise<void>
+    onComplete?: (...args: SubscribeArgs) => void | Promise<void>
+    onAfterSubscribe?: (...args: SubscribeArgs) => PubSubEvent | Promise<PubSubEvent> | undefined | Promise<undefined>
+  } = {}): (...args: SubscribeArgs) => SubscribePsuedoIterable => {
+  return (...args: SubscribeArgs) => {
+    const handler = createHandler([{
+      topic,
+      filter: typeof filter === 'function' ? filter(...args) : filter,
+    }])
 
-/** Add filter to subscribe handler */
-export const withFilter =
-  (
-    handler: SubscribeHandler,
-    filter: object | ((...args: SubscribeArgs) => object),
-  ) =>
-    (...args: SubscribeArgs) => {
-      const iterable = handler(...args)
-      if (iterable.definitions.length !== 1) {
-        throw Error('Cannot call \'withFilter\' on invalid type')
-      }
+    handler.onSubscribe = onSubscribe
+    handler.onComplete = onComplete
+    handler.onAfterSubscribe = onAfterSubscribe
 
-      return createHandler({
-        definitions: [
-          {
-            ...iterable.definitions[0],
-            filter: typeof filter === 'function' ? filter(...args) : filter,
-          },
-        ],
-      })
-    }
+    return handler
+  }
+}
 
 /** Merge multiple subscribe handlers */
 export const concat =
   (...handlers: SubscribeHandler[]) =>
-    (...args: SubscribeArgs) =>
-      createHandler({
-        definitions: handlers.map((h) => h(...args).definitions).flat(),
-      })
+    (...args: SubscribeArgs): SubscribePsuedoIterable =>
+      createHandler( handlers.map((h) => h(...args).topicDefinitions).flat() )
 
-const createHandler = (arg: { definitions: SubscriptionDefinition[] }) => {
-  const h: SubscribePsuedoIterable = (() => {
+const createHandler = (topicDefinitions: SubscriptionDefinition[]) => {
+  // eslint-disable-next-line require-yield
+  const handler: any = function *() {
     throw Error('Subscription handler should not have been called')
-  }) as any
-  h.definitions = arg.definitions
-  return h
+  }
+  handler.topicDefinitions = topicDefinitions
+  return handler as SubscribePsuedoIterable
 }

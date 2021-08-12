@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import {
   ConnectionInitMessage,
-  SubscribeMessage,
-  CompleteMessage,
   PingMessage,
   PongMessage,
 } from 'graphql-ws'
@@ -11,7 +9,7 @@ import {
   APIGatewayEventRequestContext,
   APIGatewayProxyEvent,
 } from 'aws-lambda'
-import { GraphQLSchema } from 'graphql'
+import { GraphQLResolveInfo, GraphQLSchema } from 'graphql'
 import { ApiGatewayManagementApi, DynamoDB } from 'aws-sdk'
 import { Subscription } from './model/Subscription'
 import { Connection } from './model/Connection'
@@ -34,14 +32,6 @@ export type ServerArgs = {
     event: APIGatewayWebSocketEvent
     message: ConnectionInitMessage
   }) => MaybePromise<object>
-  onSubscribe?: (e: {
-    event: APIGatewayWebSocketEvent
-    message: SubscribeMessage
-  }) => MaybePromise<void>
-  onComplete?: (e: {
-    event: APIGatewayWebSocketEvent
-    message: CompleteMessage
-  }) => MaybePromise<void>
   onPing?: (e: {
     event: APIGatewayWebSocketEvent
     message: PingMessage
@@ -82,11 +72,14 @@ export type SubscriptionDefinition = {
 export type SubscribeHandler = (...args: any[]) => SubscribePsuedoIterable
 
 export type SubscribePsuedoIterable = {
-  (): void
-  definitions: SubscriptionDefinition[]
+  (...args: SubscribeArgs): Generator<never, never, unknown>
+  topicDefinitions: SubscriptionDefinition[]
+  onSubscribe?: (...args: SubscribeArgs) => void | Promise<void>
+  onComplete?: (...args: SubscribeArgs) => void | Promise<void>
+  onAfterSubscribe?: (...args: SubscribeArgs) => PubSubEvent | Promise<PubSubEvent> | undefined | Promise<undefined>
 }
 
-export type SubscribeArgs = any[]
+export type SubscribeArgs = [root: any, args: Record<string, any>, context: any, info: GraphQLResolveInfo]
 
 export type Class = { new(...args: any[]): any }
 

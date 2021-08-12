@@ -1,6 +1,9 @@
+import { parse } from 'graphql'
 import { CompleteMessage, MessageType } from 'graphql-ws'
-import { ServerClosure, PubSubEvent } from '../types'
+import { buildExecutionContext } from 'graphql/execution/execute'
+import { ServerClosure, PubSubEvent, SubscribePsuedoIterable } from '../types'
 import { sendMessage } from '../utils/aws'
+import { constructContext, getResolverAndArgs } from '../utils/graphql'
 import { getFilteredSubs } from './getFilteredSubs'
 
 export const complete = (c: ServerClosure) => async (event: PubSubEvent): Promise<void> => {
@@ -15,6 +18,28 @@ export const complete = (c: ServerClosure) => async (event: PubSubEvent): Promis
       message,
     })
     await c.mapper.delete(sub)
+
+    const execContext = buildExecutionContext(
+      c.schema,
+      parse(sub.subscription.query),
+      undefined,
+      await constructContext(c)(sub),
+      sub.subscription.variables,
+      sub.subscription.operationName,
+      undefined,
+    )
+
+    if (!('operation' in execContext)) {
+      throw execContext
+    }
+
+    const [field, root, args, context, info] = getResolverAndArgs(c)(execContext)
+
+    const onComplete = (field?.subscribe as SubscribePsuedoIterable)?.onComplete
+    if (onComplete) {
+      await onComplete(root, args, context, info)
+    }
+
   })
   await Promise.all(iters)
 }

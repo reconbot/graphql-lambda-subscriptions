@@ -33,7 +33,6 @@ export const createInstance = (opts: ServerArgs) => {
   }
 }
 
-export { prepareResolvers } from './utils/graphql'
 export * from './pubsub/subscribe'
 
 export * from './types'

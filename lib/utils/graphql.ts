@@ -48,37 +48,5 @@ export const getResolverAndArgs =
       execContext.variableValues,
       execContext.contextValue,
       info,
-    ]
+    ] as const
   }
-
-const prepareResolver = <T extends object>(r: T) => {
-  visit<any>(r, (node) => {
-    if (!('resolve' in node)) {
-      return
-    }
-
-    // Add event handlers to resolver fn so they can be accessed later
-    ['onSubscribe', 'onComplete'].forEach(
-      (key) => (node.resolve[key] = node[key]),
-    )
-    return false
-  })
-  return r
-}
-
-export const prepareResolvers = <T extends object | object[]>(arg: T) =>
-  Array.isArray(arg) ? (arg.map(prepareResolver) as T[]) : prepareResolver(arg)
-
-const visit = <T = object>(node: T, handler: (node: T) => any) =>
-  Object.values(node).forEach((value) => {
-    if (typeof value !== 'object') {
-      return
-    }
-
-    // Don't traverse deeper
-    if (handler(value) === false) {
-      return
-    }
-
-    visit(value, handler)
-  })
