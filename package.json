@@ -48,7 +48,7 @@
     "@types/architect__sandbox": "^3.3.1",
     "@types/aws-lambda": "^8.10.81",
     "@types/chai": "^4.2.19",
-    "@types/mocha": "^8.2.2",
+    "@types/mocha": "^9.0.0",
     "@types/node": "^15.12.4",
     "@typescript-eslint/eslint-plugin": "^4.27.0",
     "@typescript-eslint/parser": "^4.27.0",
