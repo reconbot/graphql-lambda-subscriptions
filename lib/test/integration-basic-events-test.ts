@@ -5,18 +5,11 @@ import WebSocket from 'ws'
 import { deferGenerator } from 'inside-out-async'
 import { collect, map } from 'streaming-iterables'
 
-before(async () => {
-  await sandBoxStart({ port: '3339', cwd: './mocks/arc-basic-events', quiet: true } as any)
-})
-
-after(async () => {
-  await new Promise(resolve => setTimeout(resolve, 100)) // pending ddb writes need to finish
-  await sandBoxStop()
-})
+const url = `ws://localhost:${process.env.PORT}`
 
 const executeQuery = async (query: string) => {
   const client = createClient({
-    url: 'ws://localhost:3339',
+    url,
     webSocketImpl: WebSocket,
   })
 
@@ -35,7 +28,7 @@ const executeQuery = async (query: string) => {
 
 const executeSubscription = async (query: string) => {
   const client = createClient({
-    url: 'ws://localhost:3339',
+    url,
     webSocketImpl: WebSocket,
   })
 
@@ -58,6 +51,14 @@ const executeSubscription = async (query: string) => {
 }
 
 describe('Basic Events', () => {
+  before(async () => {
+    await sandBoxStart({ cwd: './mocks/arc-basic-events', quiet: true })
+  })
+
+  after(async () => {
+    await new Promise(resolve => setTimeout(resolve, 100)) // pending ddb writes need to finish
+    await sandBoxStop()
+  })
   it('queries', async () => {
     const result = await executeQuery('{ hello }')
     assert.deepEqual(result, { hello: 'Hello World!' })

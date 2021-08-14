@@ -17,7 +17,7 @@
     "lint": "tsc && eslint lib/**/*.ts lib/*.ts",
     "format": "eslint lib/**/*.ts lib/*.ts --fix",
     "clean": "rm -rf dist-ts dist",
-    "build": "npm run clean && tsc -p tsconfig-build.json && rollup -c && ts-eager bundle-types",
+    "build": "npm run clean && tsc -p tsconfig-build.json && rollup -c && node -r esbuild-register bundle-types",
     "prepublishOnly": "npm run build",
     "semantic-release": "semantic-release"
   },
@@ -34,7 +34,9 @@
   "dependencies": {
     "@aws/dynamodb-data-mapper": "^0.7.3",
     "@aws/dynamodb-data-mapper-annotations": "^0.7.3",
-    "@aws/dynamodb-expressions": "^0.7.3"
+    "@aws/dynamodb-expressions": "^0.7.3",
+    "aggregate-error": "^4.0.0",
+    "esbuild": "^0.12.20"
   },
   "peerDependencies": {
     "aws-sdk": ">= 2.844.0",
@@ -54,6 +56,7 @@
     "@typescript-eslint/parser": "^4.27.0",
     "aws-sdk": ">= 2.844.0",
     "chai": "^4.3.4",
+    "esbuild-register": "^3.0.0",
     "eslint": "^7.29.0",
     "graphql": ">= 14.0.0",
     "graphql-ws": "^5.3.0",
@@ -63,7 +66,7 @@
     "rollup-plugin-node-resolve": "^5.2.0",
     "semantic-release": "^17.4.4",
     "streaming-iterables": "^6.0.0",
-    "ts-eager": "^2.0.2",
+    "ts-node": "^10.2.0",
     "tslib": "^2.3.0",
     "typescript": "^4.3.5",
     "ws": "^8.0.0"
@@ -72,8 +75,9 @@
     "bail": true,
     "timeout": "100s",
     "require": [
-      "ts-eager/register",
-      "chai/register-assert"
+      "esbuild-register",
+      "chai/register-assert",
+      "./lib/test/setupPorts"
     ],
     "spec": "lib/**/*-test.ts"
   }

@@ -1,29 +1,12 @@
-import { DataMapper } from '@aws/dynamodb-data-mapper'
-import { ServerArgs } from './types'
+import { ServerArgs, ServerClosure } from './types'
 import { publish } from './pubsub/publish'
 import { complete } from './pubsub/complete'
-import { createModel } from './model/createModel'
-import { Subscription } from './model/Subscription'
 import { handleGatewayEvent } from './gateway'
 import { handleStateMachineEvent } from './stepFunctionHandler'
-import { Connection } from './model/Connection'
+import { makeServerClosure } from './makeServerClosure'
 
 export const createInstance = (opts: ServerArgs) => {
-  const closure = {
-    ...opts,
-    model: {
-      Subscription: createModel({
-        model: Subscription,
-        table:
-          opts.tableNames?.subscriptions || 'subscriptionless_subscriptions',
-      }),
-      Connection: createModel({
-        model: Connection,
-        table: opts.tableNames?.connections || 'subscriptionless_connections',
-      }),
-    },
-    mapper: new DataMapper({ client: opts.dynamodb }),
-  } as const
+  const closure: ServerClosure = makeServerClosure(opts)
 
   return {
     gatewayHandler: handleGatewayEvent(closure),
