@@ -1,9 +1,11 @@
+import AggregateError from 'aggregate-error'
 import { parse } from 'graphql'
 import { CompleteMessage, MessageType } from 'graphql-ws'
 import { buildExecutionContext } from 'graphql/execution/execute'
 import { ServerClosure, PubSubEvent, SubscribePsuedoIterable } from '../types'
 import { sendMessage } from '../utils/aws'
 import { constructContext, getResolverAndArgs } from '../utils/graphql'
+import { isArray } from '../utils/isArray'
 import { getFilteredSubs } from './getFilteredSubs'
 
 export const complete = (c: ServerClosure) => async (event: PubSubEvent): Promise<void> => {
@@ -29,8 +31,8 @@ export const complete = (c: ServerClosure) => async (event: PubSubEvent): Promis
       undefined,
     )
 
-    if (!('operation' in execContext)) {
-      throw execContext
+    if (isArray(execContext)) {
+      throw new AggregateError(execContext)
     }
 
     const [field, root, args, context, info] = getResolverAndArgs(c)(execContext)

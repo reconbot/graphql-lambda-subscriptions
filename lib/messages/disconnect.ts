@@ -1,18 +1,19 @@
+import AggregateError from 'aggregate-error'
 import { parse } from 'graphql'
 import { equals } from '@aws/dynamodb-expressions'
 import { buildExecutionContext } from 'graphql/execution/execute'
-import { MessageHandler } from './types'
 import { constructContext, getResolverAndArgs } from '../utils/graphql'
-import { SubscribePsuedoIterable } from '../types'
+import { SubscribePsuedoIterable, MessageHandler } from '../types'
+import { isArray } from '../utils/isArray'
 
 /** Handler function for 'disconnect' message. */
 export const disconnect: MessageHandler<null> =
-  async ({ c, event }) => {
+  async ({ server, event }) => {
     try {
-      await c.onDisconnect?.({ event })
+      await server.onDisconnect?.({ event })
 
-      const entities = await c.mapper.query(
-        c.model.Subscription,
+      const entities = server.mapper.query(
+        server.model.Subscription,
         {
           connectionId: equals(event.requestContext.connectionId),
         },
@@ -20,31 +21,30 @@ export const disconnect: MessageHandler<null> =
       )
 
       const completed = {} as Record<string, boolean>
-      let deletions = [] as Promise<any>[]
+      const deletions = [] as Promise<any>[]
       for await (const entity of entities) {
-        deletions = [
-          ...deletions,
+        deletions.push(
           (async () => {
             // only call onComplete per subscription
             if (!completed[entity.subscriptionId]) {
               completed[entity.subscriptionId] = true
 
               const execContext = buildExecutionContext(
-                c.schema,
+                server.schema,
                 parse(entity.subscription.query),
                 undefined,
-                await constructContext(c)(entity),
+                await constructContext(server)(entity),
                 entity.subscription.variables,
                 entity.subscription.operationName,
                 undefined,
               )
 
-              if (!('operation' in execContext)) {
-                throw execContext
+              if (isArray(execContext)) {
+                throw new AggregateError(execContext)
               }
 
-              const [field, root, args, context, info] =
-                getResolverAndArgs(c)(execContext)
+
+              const [field, root, args, context, info] = getResolverAndArgs(server)(execContext)
 
               const onComplete = (field?.subscribe as SubscribePsuedoIterable)?.onComplete
               if (onComplete) {
@@ -52,22 +52,22 @@ export const disconnect: MessageHandler<null> =
               }
             }
 
-            await c.mapper.delete(entity)
+            await server.mapper.delete(entity)
           })(),
-        ]
+        )
       }
 
       await Promise.all([
         // Delete subscriptions
         ...deletions,
         // Delete connection
-        c.mapper.delete(
-          Object.assign(new c.model.Connection(), {
+        server.mapper.delete(
+          Object.assign(new server.model.Connection(), {
             id: event.requestContext.connectionId!,
           }),
         ),
       ])
     } catch (err) {
-      await c.onError?.(err, { event })
+      await server.onError?.(err, { event })
     }
   }

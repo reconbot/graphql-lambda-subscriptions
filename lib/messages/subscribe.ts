@@ -1,3 +1,4 @@
+import AggregateError from 'aggregate-error'
 import { SubscribeMessage, MessageType } from 'graphql-ws'
 import { validate, parse } from 'graphql'
 import {
@@ -5,41 +6,41 @@ import {
   assertValidExecutionArguments,
   execute,
 } from 'graphql/execution/execute'
-import { MessageHandler } from './types'
-import { ServerClosure, SubscribeHandler } from '../types'
+import { APIGatewayWebSocketEvent, ServerClosure, SubscribeHandler, MessageHandler } from '../types'
 import { constructContext, getResolverAndArgs } from '../utils/graphql'
 import { deleteConnection, sendMessage } from '../utils/aws'
+import { isArray } from '../utils/isArray'
 
 /** Handler function for 'subscribe' message. */
 export const subscribe: MessageHandler<SubscribeMessage> =
-  async ({ c, event, message }) => {
+  async ({ server, event, message }) => {
     try {
-      await setupSubscription({ c, event, message })
+      await setupSubscription({ server, event, message })
     } catch (err) {
-      await c.onError?.(err, { event, message })
-      await deleteConnection(c)(event.requestContext)
+      await server.onError?.(err, { event, message })
+      await deleteConnection(server)(event.requestContext)
     }
   }
 
-const setupSubscription: MessageHandler<SubscribeMessage> = async ({ c, event, message }) => {
-  const connection = await c.mapper.get(
-    Object.assign(new c.model.Connection(), {
+const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, event, message }) => {
+  const connection = await server.mapper.get(
+    Object.assign(new server.model.Connection(), {
       id: event.requestContext.connectionId!,
     }),
   )
   const connectionParams = connection.payload || {}
 
   // Check for variable errors
-  const errors = validateMessage(c)(message)
+  const errors = validateMessage(server)(message)
 
   if (errors) {
-    throw errors
+    throw new AggregateError(errors)
   }
 
-  const contextValue = await constructContext(c)({ connectionParams })
+  const contextValue = await constructContext(server)({ connectionParams })
 
   const execContext = buildExecutionContext(
-    c.schema,
+    server.schema,
     parse(message.payload.query),
     undefined,
     contextValue,
@@ -48,8 +49,8 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ c, event, m
     undefined,
   )
 
-  if (!('operation' in execContext)) {
-    return sendMessage(c)({
+  if (isArray(execContext)) {
+    return sendMessage(server)({
       ...event.requestContext,
       message: {
         type: MessageType.Next,
@@ -61,39 +62,12 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ c, event, m
     })
   }
 
-
   if (execContext.operation.operation !== 'subscription') {
-    const result = await execute(
-      c.schema,
-      parse(message.payload.query),
-      undefined,
-      contextValue,
-      message.payload.variables,
-      message.payload.operationName,
-      undefined,
-    )
-
-    await sendMessage(c)({
-      ...event.requestContext,
-      message: {
-        type: MessageType.Next,
-        id: message.id,
-        payload: result,
-      },
-    })
-
-    await sendMessage(c)({
-      ...event.requestContext,
-      message: {
-        type: MessageType.Complete,
-        id: message.id,
-      },
-    })
-
+    await executeQuery(server, message, contextValue, event)
     return
   }
 
-  const [field, root, args, context, info] = getResolverAndArgs(c)(execContext)
+  const [field, root, args, context, info] = getResolverAndArgs(server)(execContext)
   if (!field) {
     throw new Error('No field')
   }
@@ -108,7 +82,7 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ c, event, m
   await onSubscribe?.(root, args, context, info)
 
   await Promise.all(topicDefinitions.map(async ({ topic, filter }) => {
-    const subscription = Object.assign(new c.model.Subscription(), {
+    const subscription = Object.assign(new server.model.Subscription(), {
       id: `${event.requestContext.connectionId}|${message.id}`,
       topic,
       filter: filter || {},
@@ -122,23 +96,23 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ c, event, m
       requestContext: event.requestContext,
       ttl: connection.ttl,
     })
-    await c.mapper.put(subscription)
+    await server.mapper.put(subscription)
   }))
 
   await onAfterSubscribe?.(root, args, context, info)
 }
 
 /** Validate incoming query and arguments */
-const validateMessage = (c: ServerClosure) => (message: SubscribeMessage) => {
-  const errors = validate(c.schema, parse(message.payload.query))
+const validateMessage = (server: ServerClosure) => (message: SubscribeMessage) => {
+  const errors = validate(server.schema, parse(message.payload.query))
 
-  if (errors && errors.length) {
+  if (errors && errors.length > 0) {
     return errors
   }
 
   try {
     assertValidExecutionArguments(
-      c.schema,
+      server.schema,
       parse(message.payload.query),
       message.payload.variables,
     )
@@ -146,3 +120,33 @@ const validateMessage = (c: ServerClosure) => (message: SubscribeMessage) => {
     return [err]
   }
 }
+
+async function executeQuery(server: ServerClosure, message: SubscribeMessage, contextValue: any, event: APIGatewayWebSocketEvent) {
+  const result = await execute(
+    server.schema,
+    parse(message.payload.query),
+    undefined,
+    contextValue,
+    message.payload.variables,
+    message.payload.operationName,
+    undefined,
+  )
+
+  await sendMessage(server)({
+    ...event.requestContext,
+    message: {
+      type: MessageType.Next,
+      id: message.id,
+      payload: result,
+    },
+  })
+
+  await sendMessage(server)({
+    ...event.requestContext,
+    message: {
+      type: MessageType.Complete,
+      id: message.id,
+    },
+  })
+}
+

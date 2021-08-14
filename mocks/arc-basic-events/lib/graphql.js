@@ -83,6 +83,10 @@ const buildSubscriptionServer = async () => {
       subscriptions: ensureName('Subscription'),
     },
     apiGatewayManagementApi: FakeApiGatewayManagementApi,
+    onError: err => {
+      console.log('onError', err)
+      throw err
+    },
   })
   return server
 }

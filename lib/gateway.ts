@@ -13,7 +13,7 @@ import { connection_init } from './messages/connection_init'
 import { pong } from './messages/pong'
 
 export const handleGatewayEvent =
-  (c: ServerClosure): Handler<APIGatewayWebSocketEvent, WebsocketResponse> =>
+  (server: ServerClosure): Handler<APIGatewayWebSocketEvent, WebsocketResponse> =>
     async (event) => {
       if (!event.requestContext) {
         return {
@@ -23,7 +23,7 @@ export const handleGatewayEvent =
       }
 
       if (event.requestContext.eventType === 'CONNECT') {
-        await c.onConnect?.({ event })
+        await server.onConnect?.({ event })
         return {
           statusCode: 200,
           headers: {
@@ -37,7 +37,7 @@ export const handleGatewayEvent =
         const message = JSON.parse(event.body!)
 
         if (message.type === MessageType.ConnectionInit) {
-          await connection_init({ c, event, message })
+          await connection_init({ server, event, message })
           return {
             statusCode: 200,
             body: '',
@@ -45,7 +45,7 @@ export const handleGatewayEvent =
         }
 
         if (message.type === MessageType.Subscribe) {
-          await subscribe({ c, event, message })
+          await subscribe({ server, event, message })
           return {
             statusCode: 200,
             body: '',
@@ -53,7 +53,7 @@ export const handleGatewayEvent =
         }
 
         if (message.type === MessageType.Complete) {
-          await complete({ c, event, message })
+          await complete({ server, event, message })
           return {
             statusCode: 200,
             body: '',
@@ -61,7 +61,7 @@ export const handleGatewayEvent =
         }
 
         if (message.type === MessageType.Ping) {
-          await ping({ c, event, message })
+          await ping({ server, event, message })
           return {
             statusCode: 200,
             body: '',
@@ -69,7 +69,7 @@ export const handleGatewayEvent =
         }
 
         if (message.type === MessageType.Pong) {
-          await pong({ c, event, message })
+          await pong({ server, event, message })
           return {
             statusCode: 200,
             body: '',
@@ -78,7 +78,7 @@ export const handleGatewayEvent =
       }
 
       if (event.requestContext.eventType === 'DISCONNECT') {
-        await disconnect({ c, event, message: null })
+        await disconnect({ server, event, message: null })
         return {
           statusCode: 200,
           body: '',

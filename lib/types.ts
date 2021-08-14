@@ -10,14 +10,14 @@ import {
   APIGatewayProxyEvent,
 } from 'aws-lambda'
 import { GraphQLResolveInfo, GraphQLSchema } from 'graphql'
-import { ApiGatewayManagementApi, DynamoDB } from 'aws-sdk'
+import { DynamoDB } from 'aws-sdk'
 import { Subscription } from './model/Subscription'
 import { Connection } from './model/Connection'
 
 export type ServerArgs = {
   schema: GraphQLSchema
   dynamodb: DynamoDB
-  apiGatewayManagementApi?: ApiGatewayManagementApi
+  apiGatewayManagementApi?: ApiGatewayManagementApiSubset
   context?: ((arg: { connectionParams: any }) => object) | object
   tableNames?: Partial<TableNames>
   pingpong?: {
@@ -104,4 +104,15 @@ export interface APIGatewayWebSocketEvent extends APIGatewayProxyEvent {
 export type PubSubEvent = {
   topic: string
   payload: any
+}
+
+export type MessageHandler<T> = (arg: { server: ServerClosure, event: APIGatewayWebSocketEvent, message: T }) => Promise<void>
+
+
+/*
+  Matches the ApiGatewayManagementApi class from aws-sdk but only provides the methods we use
+*/
+export interface ApiGatewayManagementApiSubset {
+  postToConnection(input: { ConnectionId: string, Data: string }): { promise: () => Promise<void> }
+  deleteConnection(input: { ConnectionId: string }): { promise: () => Promise<void> }
 }

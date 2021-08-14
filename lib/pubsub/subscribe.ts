@@ -44,7 +44,7 @@ export const concat =
 const createHandler = (topicDefinitions: SubscriptionDefinition[]) => {
   // eslint-disable-next-line require-yield
   const handler: any = function *() {
-    throw Error('Subscription handler should not have been called')
+    throw new Error('Subscription handler should not have been called')
   }
   handler.topicDefinitions = topicDefinitions
   return handler as SubscribePsuedoIterable
