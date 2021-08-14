@@ -32,7 +32,7 @@ export const concat =
 const createHandler = (topicDefinitions: SubscriptionDefinition[]) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   // eslint-disable-next-line require-yield
-  const handler: any = function *() {
+  const handler: any = async function *() {
     throw new Error('Subscription handler should not have been called')
   }
   handler.topicDefinitions = topicDefinitions

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
 import { ConnectionInitMessage, PingMessage, PongMessage } from 'graphql-ws'
 import { DataMapper } from '@aws/dynamodb-data-mapper'
@@ -72,7 +73,7 @@ export type SubscriptionDefinition = {
 export type SubscribeHandler = (...args: any[]) => SubscribePsuedoIterable
 
 export type SubscribePsuedoIterable = {
-  (...args: SubscribeArgs): Generator<never, never, unknown>
+  (...args: SubscribeArgs): AsyncGenerator<never, never, unknown>
   topicDefinitions: SubscriptionDefinition[]
   onSubscribe?: (...args: SubscribeArgs) => void | Promise<void>
   onComplete?: (...args: SubscribeArgs) => void | Promise<void>
