@@ -1,11 +1,11 @@
-import { ServerArgs, ServerClosure } from './types'
+import { ServerArgs, ServerClosure, ServerInstance } from './types'
 import { publish } from './pubsub/publish'
 import { complete } from './pubsub/complete'
 import { handleGatewayEvent } from './gateway'
 import { handleStateMachineEvent } from './stepFunctionHandler'
 import { makeServerClosure } from './makeServerClosure'
 
-export const createInstance = (opts: ServerArgs) => {
+export const createInstance = (opts: ServerArgs): ServerInstance => {
   const closure: ServerClosure = makeServerClosure(opts)
 
   return {
@@ -17,7 +17,6 @@ export const createInstance = (opts: ServerArgs) => {
 }
 
 export * from './pubsub/subscribe'
-
 export * from './types'
 export { Subscription } from './model/Subscription'
 export { Connection } from './model/Connection'
