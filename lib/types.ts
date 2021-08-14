@@ -1,15 +1,11 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { ConnectionInitMessage, PingMessage, PongMessage } from 'graphql-ws'
 import { DataMapper } from '@aws/dynamodb-data-mapper'
-import { APIGatewayEventRequestContext, APIGatewayProxyEvent } from 'aws-lambda'
+import { APIGatewayEventRequestContext, APIGatewayProxyEvent, Handler } from 'aws-lambda'
 import { GraphQLResolveInfo, GraphQLSchema } from 'graphql'
 import { DynamoDB } from 'aws-sdk'
 import { Subscription } from './model/Subscription'
 import { Connection } from './model/Connection'
-import { publish } from './pubsub/publish'
-import { complete } from './pubsub/complete'
-import { handleGatewayEvent } from './gateway'
-import { handleStateMachineEvent } from './stepFunctionHandler'
 
 export type ServerArgs = {
   schema: GraphQLSchema
@@ -51,10 +47,10 @@ export type ServerClosure = {
 } & Omit<ServerArgs, 'tableNames'>
 
 export interface ServerInstance {
-    gatewayHandler: ReturnType<typeof handleGatewayEvent>
-    stateMachineHandler:ReturnType<typeof handleStateMachineEvent>
-    publish:ReturnType<typeof publish>
-    complete: ReturnType<typeof complete>
+  gatewayHandler: Handler<APIGatewayWebSocketEvent, WebsocketResponse>
+  stateMachineHandler: (input: StateFunctionInput) => Promise<StateFunctionInput>
+  publish: (event: PubSubEvent) => Promise<void>
+  complete: (event: PubSubEvent) => Promise<void>
 }
 
 export type TableNames = {
