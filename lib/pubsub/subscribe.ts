@@ -1,11 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-types */
-import {
-  PubSubEvent,
-  SubscribeArgs,
-  SubscribeHandler,
-  SubscribePsuedoIterable,
-  SubscriptionDefinition,
-} from '../types'
+import { SubscribeArgs, SubscribeHandler, SubscribeOptions, SubscribePsuedoIterable, SubscriptionDefinition } from '../types'
 
 /** Creates subscribe handler */
 export const subscribe = (
@@ -15,12 +8,7 @@ export const subscribe = (
     onSubscribe,
     onComplete,
     onAfterSubscribe,
-  }: {
-    filter?: object | ((...args: SubscribeArgs) => object)
-    onSubscribe?: (...args: SubscribeArgs) => void | Promise<void>
-    onComplete?: (...args: SubscribeArgs) => void | Promise<void>
-    onAfterSubscribe?: (...args: SubscribeArgs) => PubSubEvent | Promise<PubSubEvent> | undefined | Promise<undefined>
-  } = {}): (...args: SubscribeArgs) => SubscribePsuedoIterable => {
+  }: SubscribeOptions = {}): (...args: SubscribeArgs) => SubscribePsuedoIterable => {
   return (...args: SubscribeArgs) => {
     const handler = createHandler([{
       topic,
@@ -42,6 +30,7 @@ export const concat =
       createHandler( handlers.map((h) => h(...args).topicDefinitions).flat() )
 
 const createHandler = (topicDefinitions: SubscriptionDefinition[]) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   // eslint-disable-next-line require-yield
   const handler: any = function *() {
     throw new Error('Subscription handler should not have been called')

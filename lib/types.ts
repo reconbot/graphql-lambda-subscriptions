@@ -115,3 +115,10 @@ export interface ApiGatewayManagementApiSubset {
   postToConnection(input: { ConnectionId: string, Data: string }): { promise: () => Promise<void> }
   deleteConnection(input: { ConnectionId: string }): { promise: () => Promise<void> }
 }
+
+export interface SubscribeOptions {
+  filter?: object | ((...args: SubscribeArgs) => object)
+  onSubscribe?: (...args: SubscribeArgs) => void | Promise<void>
+  onComplete?: (...args: SubscribeArgs) => void | Promise<void>
+  onAfterSubscribe?: (...args: SubscribeArgs) => PubSubEvent | Promise<PubSubEvent> | undefined | Promise<undefined>
+}
