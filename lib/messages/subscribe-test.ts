@@ -1,7 +1,7 @@
 import { assert } from 'chai'
 import { tables } from '@architect/sandbox'
 import { subscribe } from './subscribe'
-import { mockServerContext } from '../test/mockServerContext'
+import { mockServerContext } from '../test/mockServer'
 import { connection_init } from './connection_init'
 import { equals } from '@aws/dynamodb-expressions'
 import { collect } from 'streaming-iterables'

@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { ConnectionInitMessage, PingMessage, PongMessage } from 'graphql-ws'
 import { DataMapper } from '@aws/dynamodb-data-mapper'
-import { APIGatewayEventRequestContext, APIGatewayProxyEvent, Handler } from 'aws-lambda'
+import { APIGatewayEventRequestContext, APIGatewayProxyEvent } from 'aws-lambda'
 import { GraphQLResolveInfo, GraphQLSchema } from 'graphql'
 import { DynamoDB } from 'aws-sdk'
 import { Subscription } from './model/Subscription'
@@ -48,7 +48,7 @@ export type ServerClosure = {
 } & Omit<ServerArgs, 'tableNames'>
 
 export interface ServerInstance {
-  gatewayHandler: Handler<APIGatewayWebSocketEvent, WebsocketResponse>
+  gatewayHandler: ApiGatewayHandler<APIGatewayWebSocketEvent, WebsocketResponse>
   stateMachineHandler: (input: StateFunctionInput) => Promise<StateFunctionInput>
   publish: (event: PubSubEvent) => Promise<void>
   complete: (event: PubSubEvent) => Promise<void>
@@ -123,3 +123,5 @@ export interface SubscribeOptions {
   onComplete?: (...args: SubscribeArgs) => void | Promise<void>
   onAfterSubscribe?: (...args: SubscribeArgs) => PubSubEvent | Promise<PubSubEvent> | undefined | Promise<undefined>
 }
+
+export type ApiGatewayHandler<TEvent = any, TResult = any> = (event: TEvent) => void | Promise<TResult>
