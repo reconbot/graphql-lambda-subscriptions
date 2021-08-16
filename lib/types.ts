@@ -77,7 +77,7 @@ export type SubscribePsuedoIterable = {
   topicDefinitions: SubscriptionDefinition[]
   onSubscribe?: (...args: SubscribeArgs) => void | Promise<void>
   onComplete?: (...args: SubscribeArgs) => void | Promise<void>
-  onAfterSubscribe?: (...args: SubscribeArgs) => PubSubEvent | Promise<PubSubEvent> | undefined | Promise<undefined>
+  onAfterSubscribe?: (...args: SubscribeArgs) => PubSubEvent | Promise<PubSubEvent> | void | Promise<void>
 }
 
 export type SubscribeArgs = [root: any, args: Record<string, any>, context: any, info: GraphQLResolveInfo]
@@ -121,7 +121,7 @@ export interface SubscribeOptions {
   filter?: object | ((...args: SubscribeArgs) => object)
   onSubscribe?: (...args: SubscribeArgs) => void | Promise<void>
   onComplete?: (...args: SubscribeArgs) => void | Promise<void>
-  onAfterSubscribe?: (...args: SubscribeArgs) => PubSubEvent | Promise<PubSubEvent> | undefined | Promise<undefined>
+  onAfterSubscribe?: (...args: SubscribeArgs) => PubSubEvent | Promise<PubSubEvent> | void | Promise<void>
 }
 
 export type ApiGatewayHandler<TEvent = any, TResult = any> = (event: TEvent) => void | Promise<TResult>
