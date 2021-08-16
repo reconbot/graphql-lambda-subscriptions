@@ -1,6 +1,6 @@
-import { Handler } from 'aws-lambda'
 import { GRAPHQL_TRANSPORT_WS_PROTOCOL, MessageType } from 'graphql-ws'
 import {
+  ApiGatewayHandler,
   APIGatewayWebSocketEvent,
   ServerClosure,
   WebsocketResponse,
@@ -13,7 +13,7 @@ import { connection_init } from './messages/connection_init'
 import { pong } from './messages/pong'
 
 export const handleGatewayEvent =
-  (server: ServerClosure): Handler<APIGatewayWebSocketEvent, WebsocketResponse> =>
+  (server: ServerClosure): ApiGatewayHandler<APIGatewayWebSocketEvent, WebsocketResponse> =>
     async (event) => {
       if (!event.requestContext) {
         return {

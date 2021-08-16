@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { tables as arcTables } from '@architect/functions'
 import { makeServerClosure } from '../makeServerClosure'
@@ -33,26 +34,33 @@ const schema = makeExecutableSchema({
   resolvers,
 })
 
+const ensureName = (tables: any, table: string) => {
+  const actualTableName = tables.name(table)
+  if (!actualTableName) {
+    throw new Error(`No table found for ${table}`)
+  }
+  return actualTableName
+}
 
-export const mockServerContext = async (args: Partial<ServerArgs>): Promise<ServerClosure> => {
+export const mockServerArgs = async (args: Partial<ServerArgs> = {}): Promise<ServerArgs> => {
   const tables = await arcTables()
 
-  const ensureName = (table) => {
-    const actualTableName = tables.name(table)
-    if (!actualTableName) {
-      throw new Error(`No table found for ${table}`)
-    }
-    return actualTableName
-  }
-
-  return makeServerClosure({
+  return {
     dynamodb: arcTables.db,
     schema,
     tableNames: {
-      connections: ensureName('Connection'),
-      subscriptions: ensureName('Subscription'),
+      connections: ensureName(tables, 'Connection'),
+      subscriptions: ensureName(tables, 'Subscription'),
+    },
+    apiGatewayManagementApi: {
+      postToConnection: () => ({ promise: async () => { } }),
+      deleteConnection: () => ({ promise: async () => { } }),
     },
     onError: (err) => { console.log('onError'); throw err },
     ...args,
-  })
+  }
+}
+
+export const mockServerContext = async (args?: Partial<ServerArgs>): Promise<ServerClosure> => {
+  return makeServerClosure(await mockServerArgs(args))
 }
