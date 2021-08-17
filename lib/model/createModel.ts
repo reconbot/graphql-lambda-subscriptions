@@ -7,7 +7,7 @@ export const createModel = <T extends Class>({
 }: {
   table: string
   model: T
-}) => {
+}): T => {
   Object.defineProperties(model.prototype, {
     [DynamoDbTable]: { value: table },
   })

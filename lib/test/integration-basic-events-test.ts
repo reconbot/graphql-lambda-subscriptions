@@ -37,7 +37,7 @@ const executeSubscription = async (query: string) => {
   const unsubscribe = client.subscribe(
     { query },
     {
-      next: ({data}) => {
+      next: ({ data }) => {
         values.queueValue(data)
       },
       error: (error: Error) => {

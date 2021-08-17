@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { assert } from 'chai'
 import { tables } from '@architect/sandbox'
 import { subscribe } from './subscribe'
@@ -127,7 +128,7 @@ describe('messages/subscribe', () => {
                 throw new Error('don\'t subscribe!')
               },
             }),
-            resolve: ({payload}) => {
+            resolve: ({ payload }) => {
               return payload
             },
           },
@@ -180,7 +181,7 @@ describe('messages/subscribe', () => {
                 events.push('onAfterSubscribe')
               },
             }),
-            resolve: ({payload}) => {
+            resolve: ({ payload }) => {
               return payload
             },
           },

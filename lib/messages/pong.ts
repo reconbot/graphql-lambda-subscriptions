@@ -1,5 +1,5 @@
 import { PongMessage } from 'graphql-ws'
-import { deleteConnection } from '../utils/aws'
+import { deleteConnection } from '../utils/deleteConnection'
 import { MessageHandler } from '../types'
 
 /** Handler function for 'pong' message. */
@@ -9,7 +9,7 @@ export const pong: MessageHandler<PongMessage> =
       await server.onPong?.({ event, message })
       await server.mapper.update(
         Object.assign(new server.model.Connection(), {
-          id: event.requestContext.connectionId!,
+          id: event.requestContext.connectionId,
           hasPonged: true,
         }),
         {

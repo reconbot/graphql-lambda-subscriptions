@@ -39,14 +39,14 @@ const resolvers = {
   Subscription: {
     greetings:{
       subscribe: subscribe('greetings', {
-        async onAfterSubscribe(_, __, {publish, complete}) {
+        async onAfterSubscribe(_, __, { publish, complete }) {
           await publish({ topic: 'greetings', payload: 'yoyo' })
           await publish({ topic: 'greetings', payload: 'hows it' })
           await publish({ topic: 'greetings', payload: 'howdy' })
           await complete({ topic: 'greetings', payload: 'wtf' })
         },
       }),
-      resolve: ({payload}) => {
+      resolve: ({ payload }) => {
         return payload
       },
     },

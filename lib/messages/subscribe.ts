@@ -7,8 +7,10 @@ import {
   execute,
 } from 'graphql/execution/execute'
 import { APIGatewayWebSocketEvent, ServerClosure, SubscribeHandler, MessageHandler } from '../types'
-import { constructContext, getResolverAndArgs } from '../utils/graphql'
-import { deleteConnection, sendMessage } from '../utils/aws'
+import { constructContext } from '../utils/constructContext'
+import { getResolverAndArgs } from '../utils/getResolverAndArgs'
+import { sendMessage } from '../utils/sendMessage'
+import { deleteConnection } from '../utils/deleteConnection'
 import { isArray } from '../utils/isArray'
 
 /** Handler function for 'subscribe' message. */
@@ -25,7 +27,7 @@ export const subscribe: MessageHandler<SubscribeMessage> =
 const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, event, message }) => {
   const connection = await server.mapper.get(
     Object.assign(new server.model.Connection(), {
-      id: event.requestContext.connectionId!,
+      id: event.requestContext.connectionId,
     }),
   )
   const connectionParams = connection.payload || {}
@@ -37,7 +39,7 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
     throw new AggregateError(errors)
   }
 
-  const contextValue = await constructContext(server)({ connectionParams })
+  const contextValue = await constructContext({ server, connectionParams, connectionId: connection.id })
 
   const execContext = buildExecutionContext(
     server.schema,
@@ -91,7 +93,7 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
         variableValues: args,
         ...message.payload,
       },
-      connectionId: event.requestContext.connectionId!,
+      connectionId: event.requestContext.connectionId,
       connectionParams,
       requestContext: event.requestContext,
       ttl: connection.ttl,
@@ -121,6 +123,7 @@ const validateMessage = (server: ServerClosure) => (message: SubscribeMessage) =
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function executeQuery(server: ServerClosure, message: SubscribeMessage, contextValue: any, event: APIGatewayWebSocketEvent) {
   const result = await execute(
     server.schema,
