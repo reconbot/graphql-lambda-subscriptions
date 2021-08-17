@@ -12,7 +12,7 @@ export type ServerArgs = {
   schema: GraphQLSchema
   dynamodb: DynamoDB
   apiGatewayManagementApi?: ApiGatewayManagementApiSubset
-  context?: ((arg: { connectionParams: any }) => object) | object
+  context?: ((arg: { connectionParams: any, connectionId: string }) => MaybePromise<object>) | object
   tableNames?: Partial<TableNames>
   pingpong?: {
     machine: string
@@ -34,7 +34,7 @@ export type ServerArgs = {
     event: APIGatewayWebSocketEvent
     message: PongMessage
   }) => MaybePromise<void>
-  onError?: (error: any, context: any) => void
+  onError?: (error: any, context: any) => MaybePromise<void>
 }
 
 export type MaybePromise<T> = T | Promise<T>
@@ -70,14 +70,14 @@ export type SubscriptionDefinition = {
   filter?: object | (() => void)
 }
 
-export type SubscribeHandler = (...args: any[]) => SubscribePsuedoIterable
+export type SubscribeHandler = (...args: any[]) => SubscribePseudoIterable
 
-export type SubscribePsuedoIterable = {
+export type SubscribePseudoIterable = {
   (...args: SubscribeArgs): AsyncGenerator<never, never, unknown>
   topicDefinitions: SubscriptionDefinition[]
-  onSubscribe?: (...args: SubscribeArgs) => void | Promise<void>
-  onComplete?: (...args: SubscribeArgs) => void | Promise<void>
-  onAfterSubscribe?: (...args: SubscribeArgs) => PubSubEvent | Promise<PubSubEvent> | void | Promise<void>
+  onSubscribe?: (...args: SubscribeArgs) => MaybePromise<void>
+  onComplete?: (...args: SubscribeArgs) => MaybePromise<void>
+  onAfterSubscribe?: (...args: SubscribeArgs) => MaybePromise<void>
 }
 
 export type SubscribeArgs = [root: any, args: Record<string, any>, context: any, info: GraphQLResolveInfo]
@@ -92,8 +92,7 @@ export type StateFunctionInput = {
   seconds: number
 }
 
-export interface APIGatewayWebSocketRequestContext
-  extends APIGatewayEventRequestContext {
+export interface APIGatewayWebSocketRequestContext extends APIGatewayEventRequestContext {
   connectionId: string
   domainName: string
 }
@@ -119,9 +118,9 @@ export interface ApiGatewayManagementApiSubset {
 
 export interface SubscribeOptions {
   filter?: object | ((...args: SubscribeArgs) => object)
-  onSubscribe?: (...args: SubscribeArgs) => void | Promise<void>
-  onComplete?: (...args: SubscribeArgs) => void | Promise<void>
-  onAfterSubscribe?: (...args: SubscribeArgs) => PubSubEvent | Promise<PubSubEvent> | void | Promise<void>
+  onSubscribe?: (...args: SubscribeArgs) => MaybePromise<void>
+  onComplete?: (...args: SubscribeArgs) => MaybePromise<void>
+  onAfterSubscribe?: (...args: SubscribeArgs) => MaybePromise<void>
 }
 
-export type ApiGatewayHandler<TEvent = any, TResult = any> = (event: TEvent) => void | Promise<TResult>
+export type ApiGatewayHandler<TEvent = any, TResult = any> = (event: TEvent) => Promise<TResult>

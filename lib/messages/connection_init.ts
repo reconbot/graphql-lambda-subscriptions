@@ -1,7 +1,8 @@
 import { StepFunctions } from 'aws-sdk'
 import { ConnectionInitMessage, MessageType } from 'graphql-ws'
 import { StateFunctionInput, MessageHandler } from '../types'
-import { deleteConnection, sendMessage } from '../utils/aws'
+import { sendMessage } from '../utils/sendMessage'
+import { deleteConnection } from '../utils/deleteConnection'
 
 /** Handler function for 'connection_init' message. */
 export const connection_init: MessageHandler<ConnectionInitMessage> =
@@ -15,10 +16,10 @@ export const connection_init: MessageHandler<ConnectionInitMessage> =
         await new StepFunctions()
           .startExecution({
             stateMachineArn: server.pingpong.machine,
-            name: event.requestContext.connectionId!,
+            name: event.requestContext.connectionId,
             input: JSON.stringify({
-              connectionId: event.requestContext.connectionId!,
-              domainName: event.requestContext.domainName!,
+              connectionId: event.requestContext.connectionId,
+              domainName: event.requestContext.domainName,
               stage: event.requestContext.stage,
               state: 'PING',
               choice: 'WAIT',
@@ -30,7 +31,7 @@ export const connection_init: MessageHandler<ConnectionInitMessage> =
 
       // Write to persistence
       const connection = Object.assign(new server.model.Connection(), {
-        id: event.requestContext.connectionId!,
+        id: event.requestContext.connectionId,
         requestContext: event.requestContext,
         payload: res,
       })

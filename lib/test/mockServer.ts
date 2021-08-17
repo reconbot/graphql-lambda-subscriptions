@@ -22,7 +22,7 @@ const resolvers = {
   Subscription: {
     greetings:{
       subscribe: subscribe('greetings'),
-      resolve: ({payload}) => {
+      resolve: ({ payload }) => {
         return payload
       },
     },
@@ -34,6 +34,7 @@ const schema = makeExecutableSchema({
   resolvers,
 })
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ensureName = (tables: any, table: string) => {
   const actualTableName = tables.name(table)
   if (!actualTableName) {

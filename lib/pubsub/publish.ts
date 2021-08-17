@@ -1,18 +1,18 @@
 import { parse, execute } from 'graphql'
 import { MessageType, NextMessage } from 'graphql-ws'
 import { PubSubEvent, ServerClosure } from '../types'
-import { sendMessage } from '../utils/aws'
-import { constructContext } from '../utils/graphql'
+import { sendMessage } from '../utils/sendMessage'
+import { constructContext } from '../utils/constructContext'
 import { getFilteredSubs } from './getFilteredSubs'
 
-export const publish = (c: ServerClosure) => async (event: PubSubEvent): Promise<void> => {
-  const subscriptions = await getFilteredSubs(c)(event)
+export const publish = (server: ServerClosure) => async (event: PubSubEvent): Promise<void> => {
+  const subscriptions = await getFilteredSubs({ server, event })
   const iters = subscriptions.map(async (sub) => {
     const payload = await execute(
-      c.schema,
+      server.schema,
       parse(sub.subscription.query),
       event,
-      await constructContext(c)(sub),
+      await constructContext({ server, connectionParams: sub.connectionParams, connectionId: sub.connectionId }),
       sub.subscription.variables,
       sub.subscription.operationName,
       undefined,
@@ -24,7 +24,7 @@ export const publish = (c: ServerClosure) => async (event: PubSubEvent): Promise
       payload,
     }
 
-    await sendMessage(c)({
+    await sendMessage(server)({
       ...sub.requestContext,
       message,
     })
