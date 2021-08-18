@@ -1,8 +1,8 @@
 import { ServerArgs, ServerClosure, ServerInstance } from './types'
 import { publish } from './pubsub/publish'
 import { complete } from './pubsub/complete'
-import { handleGatewayEvent } from './gateway'
-import { handleStateMachineEvent } from './stepFunctionHandler'
+import { handleGatewayEvent } from './handleGatewayEvent'
+import { handleStateMachineEvent } from './handleStateMachineEvent'
 import { makeServerClosure } from './makeServerClosure'
 
 export const createInstance = (opts: ServerArgs): ServerInstance => {

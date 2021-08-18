@@ -53,7 +53,7 @@ export interface ServerInstance {
   gatewayHandler: ApiGatewayHandler<APIGatewayWebSocketEvent, WebsocketResponse>
   stateMachineHandler: (input: StateFunctionInput) => Promise<StateFunctionInput>
   publish: (event: PubSubEvent) => Promise<void>
-  complete: (event: PubSubEvent) => Promise<void>
+  complete: (event: PartialBy<PubSubEvent, 'payload'>) => Promise<void>
 }
 
 export type TableNames = {
