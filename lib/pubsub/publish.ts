@@ -5,8 +5,11 @@ import { sendMessage } from '../utils/sendMessage'
 import { constructContext } from '../utils/constructContext'
 import { getFilteredSubs } from './getFilteredSubs'
 
-export const publish = (server: ServerClosure) => async (event: PubSubEvent): Promise<void> => {
+export const publish = (server: ServerClosure) => async <T extends PubSubEvent>(event: T): Promise<void> => {
+  server.log('pubsub:publish %j', { event })
   const subscriptions = await getFilteredSubs({ server, event })
+  server.log('pubsub:publish %j', { subscriptions: subscriptions.map(({ connectionId, filter, subscription }) => ({ connectionId, filter, subscription }) ) })
+
   const iters = subscriptions.map(async (sub) => {
     const payload = await execute(
       server.schema,

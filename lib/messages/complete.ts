@@ -3,7 +3,7 @@ import { parse } from 'graphql'
 import { CompleteMessage } from 'graphql-ws'
 import { buildExecutionContext } from 'graphql/execution/execute'
 import { collect } from 'streaming-iterables'
-import { SubscribePseudoIterable, MessageHandler } from '../types'
+import { SubscribePseudoIterable, MessageHandler, PubSubEvent } from '../types'
 import { deleteConnection } from '../utils/deleteConnection'
 import { constructContext } from '../utils/constructContext'
 import { getResolverAndArgs } from '../utils/getResolverAndArgs'
@@ -37,7 +37,7 @@ export const complete: MessageHandler<CompleteMessage> =
 
       const [field, root, args, context, info] = getResolverAndArgs(server)(execContext)
 
-      const onComplete = (field?.subscribe as SubscribePseudoIterable)?.onComplete
+      const onComplete = (field?.subscribe as SubscribePseudoIterable<PubSubEvent>)?.onComplete
       if (onComplete) {
         await onComplete(root, args, context, info)
       }

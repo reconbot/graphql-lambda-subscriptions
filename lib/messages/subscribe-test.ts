@@ -19,7 +19,7 @@ describe('messages/subscribe', () => {
   })
 
   afterEach(async () => {
-    tables.end()
+    await tables.end()
   })
 
   it('executes a query/mutation', async () => {
