@@ -11,7 +11,7 @@ import { ServerClosure } from '../types'
 
 type GraphqlWSMessages = ConnectionAckMessage | NextMessage | CompleteMessage | ErrorMessage | PingMessage | PongMessage
 
-export const sendMessage = (c: ServerClosure) =>
+export const sendMessage = (server: ServerClosure) =>
   async ({
     connectionId: ConnectionId,
     domainName,
@@ -23,7 +23,9 @@ export const sendMessage = (c: ServerClosure) =>
     stage: string
     message: GraphqlWSMessages
   }): Promise<void> => {
-    const api = c.apiGatewayManagementApi ??
+    server.log('sendMessage %j', { connectionId: ConnectionId, message })
+
+    const api = server.apiGatewayManagementApi ??
       new ApiGatewayManagementApi({
         apiVersion: 'latest',
         endpoint: `${domainName}/${stage}`,

@@ -35,6 +35,7 @@ export type ServerArgs = {
     message: PongMessage
   }) => MaybePromise<void>
   onError?: (error: any, context: any) => MaybePromise<void>
+  log?: LoggerFunction
 }
 
 export type MaybePromise<T> = T | Promise<T>
@@ -45,6 +46,7 @@ export type ServerClosure = {
     Subscription: typeof Subscription
     Connection: typeof Connection
   }
+  log: LoggerFunction
 } & Omit<ServerArgs, 'tableNames'>
 
 export interface ServerInstance {
@@ -59,30 +61,46 @@ export type TableNames = {
   subscriptions: string
 }
 
+export type LoggerFunction = (input: string, obj?: any) => void
+
 export type WebsocketResponse = {
   statusCode: number
   headers?: Record<string, string>
   body: string
 }
 
-export type SubscriptionDefinition = {
+export type SubscribeArgs<TRoot = any, TArgs = Record<string, any>, TContext = any> = [root: TRoot, args: TArgs, context: TContext, info: GraphQLResolveInfo]
+
+export type SubscriptionFilter<
+  TSubscribeArgs extends SubscribeArgs = SubscribeArgs,
+  TReturn extends Record<string, any> = Record<string, any>
+> = Partial<TReturn> | void | ((...args: TSubscribeArgs) => MaybePromise<Partial<TReturn>> | MaybePromise<Partial<void>>)
+
+export type SubscriptionDefinition<
+T extends PubSubEvent,
+TSubscribeArgs extends SubscribeArgs = SubscribeArgs,
+> = {
   topic: string
-  filter?: object | (() => void)
+  filter?: SubscriptionFilter<TSubscribeArgs, T['payload']>
 }
 
-export type SubscribeHandler = (...args: any[]) => SubscribePseudoIterable
+export type SubscribeHandler = <T extends PubSubEvent>(...args: any[]) => SubscribePseudoIterable<T>
 
-export type SubscribePseudoIterable = {
-  (...args: SubscribeArgs): AsyncGenerator<never, never, unknown>
-  topicDefinitions: SubscriptionDefinition[]
-  onSubscribe?: (...args: SubscribeArgs) => MaybePromise<void>
-  onComplete?: (...args: SubscribeArgs) => MaybePromise<void>
-  onAfterSubscribe?: (...args: SubscribeArgs) => MaybePromise<void>
+export type SubscribePseudoIterable<T extends PubSubEvent, TSubscribeArgs extends SubscribeArgs = SubscribeArgs> = {
+  (...args: TSubscribeArgs): AsyncGenerator<T, never, unknown>
+  topicDefinitions: SubscriptionDefinition<T, TSubscribeArgs>[]
+  onSubscribe?: (...args: TSubscribeArgs) => MaybePromise<void>
+  onComplete?: (...args: TSubscribeArgs) => MaybePromise<void>
+  onAfterSubscribe?: (...args: TSubscribeArgs) => MaybePromise<void>
 }
 
-export type SubscribeArgs = [root: any, args: Record<string, any>, context: any, info: GraphQLResolveInfo]
 
-export type Class = { new(...args: any[]): any }
+export interface SubscribeOptions<T extends PubSubEvent, TSubscribeArgs extends SubscribeArgs = SubscribeArgs> {
+  filter?: SubscriptionFilter<TSubscribeArgs, T['payload']>
+  onSubscribe?: (...args: TSubscribeArgs) => MaybePromise<void>
+  onComplete?: (...args: TSubscribeArgs) => MaybePromise<void>
+  onAfterSubscribe?: (...args: TSubscribeArgs) => MaybePromise<void>
+}
 
 export type StateFunctionInput = {
   connectionId: string
@@ -103,7 +121,7 @@ export interface APIGatewayWebSocketEvent extends APIGatewayProxyEvent {
 
 export type PubSubEvent = {
   topic: string
-  payload: any
+  payload: Record<string, any>
 }
 
 export type MessageHandler<T> = (arg: { server: ServerClosure, event: APIGatewayWebSocketEvent, message: T }) => Promise<void>
@@ -116,11 +134,6 @@ export interface ApiGatewayManagementApiSubset {
   deleteConnection(input: { ConnectionId: string }): { promise: () => Promise<void> }
 }
 
-export interface SubscribeOptions {
-  filter?: object | ((...args: SubscribeArgs) => object)
-  onSubscribe?: (...args: SubscribeArgs) => MaybePromise<void>
-  onComplete?: (...args: SubscribeArgs) => MaybePromise<void>
-  onAfterSubscribe?: (...args: SubscribeArgs) => MaybePromise<void>
-}
-
 export type ApiGatewayHandler<TEvent = any, TResult = any> = (event: TEvent) => Promise<TResult>
+
+export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>

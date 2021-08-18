@@ -29,6 +29,7 @@ const typeDefs = `
   }
   type Subscription {
     greetings: String
+    filterTest: String
   }
 `
 
@@ -40,14 +41,32 @@ const resolvers = {
     greetings:{
       subscribe: subscribe('greetings', {
         async onAfterSubscribe(_, __, { publish, complete }) {
-          await publish({ topic: 'greetings', payload: 'yoyo' })
-          await publish({ topic: 'greetings', payload: 'hows it' })
-          await publish({ topic: 'greetings', payload: 'howdy' })
-          await complete({ topic: 'greetings', payload: 'wtf' })
+          await publish({ topic: 'greetings', payload: { message: 'yoyo' } })
+          await publish({ topic: 'greetings', payload: { message: 'hows it' } })
+          await publish({ topic: 'greetings', payload: { message: 'howdy' } })
+          await complete({ topic: 'greetings', payload: { message: 'wtf' } })
         },
       }),
       resolve: ({ payload }) => {
-        return payload
+        return payload.message
+      },
+    },
+    filterTest:{
+      subscribe: subscribe('filterTest', {
+        async filter() {
+          return {
+            error: false,
+          }
+        },
+        async onAfterSubscribe(_, __, { publish, complete }) {
+          await publish({ topic: 'filterTest', payload: { error: true, message: 'oh no!' } })
+          await publish({ topic: 'filterTest', payload: { error: false, message: 'oh yes!' } })
+          await publish({ topic: 'filterTest', payload: { message: 'Missing fields also work' } })
+          await complete({ topic: 'filterTest' })
+        },
+      }),
+      resolve: ({ payload }) => {
+        return payload.message
       },
     },
   },

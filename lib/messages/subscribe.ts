@@ -6,7 +6,7 @@ import {
   assertValidExecutionArguments,
   execute,
 } from 'graphql/execution/execute'
-import { APIGatewayWebSocketEvent, ServerClosure, SubscribeHandler, MessageHandler } from '../types'
+import { APIGatewayWebSocketEvent, ServerClosure, MessageHandler, SubscribePseudoIterable, PubSubEvent } from '../types'
 import { constructContext } from '../utils/constructContext'
 import { getResolverAndArgs } from '../utils/getResolverAndArgs'
 import { sendMessage } from '../utils/sendMessage'
@@ -25,9 +25,11 @@ export const subscribe: MessageHandler<SubscribeMessage> =
   }
 
 const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, event, message }) => {
+  const connectionId = event.requestContext.connectionId
+
   const connection = await server.mapper.get(
     Object.assign(new server.model.Connection(), {
-      id: event.requestContext.connectionId,
+      id: connectionId,
     }),
   )
   const connectionParams = connection.payload || {}
@@ -39,7 +41,7 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
     throw new AggregateError(errors)
   }
 
-  const contextValue = await constructContext({ server, connectionParams, connectionId: connection.id })
+  const contextValue = await constructContext({ server, connectionParams, connectionId })
 
   const execContext = buildExecutionContext(
     server.schema,
@@ -74,33 +76,33 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
     throw new Error('No field')
   }
 
-  const { topicDefinitions, onSubscribe, onAfterSubscribe } = await (field.subscribe as SubscribeHandler)(
-    root,
-    args,
-    context,
-    info,
-  )
+  const { topicDefinitions, onSubscribe, onAfterSubscribe } = field.subscribe as SubscribePseudoIterable<PubSubEvent>
 
+  server.log('onSubscribe', { onSubscribe: !!onSubscribe })
   await onSubscribe?.(root, args, context, info)
 
   await Promise.all(topicDefinitions.map(async ({ topic, filter }) => {
+    const filterData = typeof filter === 'function' ? await filter(root, args, context, info) : filter
+
     const subscription = Object.assign(new server.model.Subscription(), {
-      id: `${event.requestContext.connectionId}|${message.id}`,
+      id: `${connectionId}|${message.id}`,
       topic,
-      filter: filter || {},
+      filter: filterData || {},
       subscriptionId: message.id,
       subscription: {
         variableValues: args,
         ...message.payload,
       },
-      connectionId: event.requestContext.connectionId,
+      connectionId,
       connectionParams,
       requestContext: event.requestContext,
       ttl: connection.ttl,
     })
+    server.log('subscribe:putSubscription %j', subscription)
     await server.mapper.put(subscription)
   }))
 
+  server.log('onAfterSubscribe', { onAfterSubscribe: !!onAfterSubscribe })
   await onAfterSubscribe?.(root, args, context, info)
 }
 
@@ -125,6 +127,8 @@ const validateMessage = (server: ServerClosure) => (message: SubscribeMessage) =
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function executeQuery(server: ServerClosure, message: SubscribeMessage, contextValue: any, event: APIGatewayWebSocketEvent) {
+  server.log('executeQuery', { connectionId: event.requestContext.connectionId })
+
   const result = await execute(
     server.schema,
     parse(message.payload.query),

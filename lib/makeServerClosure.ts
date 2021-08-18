@@ -3,9 +3,11 @@ import { ServerArgs, ServerClosure } from './types'
 import { createModel } from './model/createModel'
 import { Subscription } from './model/Subscription'
 import { Connection } from './model/Connection'
+import { log } from './utils/logger'
 
 export function makeServerClosure(opts: ServerArgs): ServerClosure {
   return {
+    log: log,
     ...opts,
     model: {
       Subscription: createModel({

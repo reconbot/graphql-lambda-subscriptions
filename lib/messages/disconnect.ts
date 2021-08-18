@@ -4,7 +4,7 @@ import { equals } from '@aws/dynamodb-expressions'
 import { buildExecutionContext } from 'graphql/execution/execute'
 import { constructContext } from '../utils/constructContext'
 import { getResolverAndArgs } from '../utils/getResolverAndArgs'
-import { SubscribePseudoIterable, MessageHandler } from '../types'
+import { SubscribePseudoIterable, MessageHandler, PubSubEvent } from '../types'
 import { isArray } from '../utils/isArray'
 import { collect } from 'streaming-iterables'
 import { Connection } from '../model/Connection'
@@ -49,7 +49,7 @@ export const disconnect: MessageHandler<null> =
 
               const [field, root, args, context, info] = getResolverAndArgs(server)(execContext)
 
-              const onComplete = (field?.subscribe as SubscribePseudoIterable)?.onComplete
+              const onComplete = (field?.subscribe as SubscribePseudoIterable<PubSubEvent>)?.onComplete
               if (onComplete) {
                 await onComplete(root, args, context, info)
               }

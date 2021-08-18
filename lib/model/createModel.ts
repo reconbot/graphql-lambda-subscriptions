@@ -1,7 +1,7 @@
 import { DynamoDbTable } from '@aws/dynamodb-data-mapper'
-import { Class } from '../types'
 
-export const createModel = <T extends Class>({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const createModel = <T extends { new(...args: any[]): any }>({
   model,
   table,
 }: {

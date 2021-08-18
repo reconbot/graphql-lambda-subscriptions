@@ -14,6 +14,7 @@ import { pong } from './messages/pong'
 
 export const handleGatewayEvent = (server: ServerClosure): ApiGatewayHandler<APIGatewayWebSocketEvent, WebsocketResponse> => async (event) => {
   if (!event.requestContext) {
+    server.log('handleGatewayEvent unknown')
     return {
       statusCode: 200,
       body: '',
@@ -21,6 +22,7 @@ export const handleGatewayEvent = (server: ServerClosure): ApiGatewayHandler<API
   }
 
   if (event.requestContext.eventType === 'CONNECT') {
+    server.log('handleGatewayEvent CONNECT', { connectionId: event.requestContext.connectionId })
     await server.onConnect?.({ event })
     return {
       statusCode: 200,
@@ -33,6 +35,7 @@ export const handleGatewayEvent = (server: ServerClosure): ApiGatewayHandler<API
 
   if (event.requestContext.eventType === 'MESSAGE') {
     const message = event.body === null ? null : JSON.parse(event.body)
+    server.log('handleGatewayEvent MESSAGE', { connectionId: event.requestContext.connectionId, type: message.type })
 
     if (message.type === MessageType.ConnectionInit) {
       await connection_init({ server, event, message })
@@ -76,6 +79,7 @@ export const handleGatewayEvent = (server: ServerClosure): ApiGatewayHandler<API
   }
 
   if (event.requestContext.eventType === 'DISCONNECT') {
+    server.log('handleGatewayEvent DISCONNECT', { connectionId: event.requestContext.connectionId })
     await disconnect({ server, event, message: null })
     return {
       statusCode: 200,
@@ -83,6 +87,7 @@ export const handleGatewayEvent = (server: ServerClosure): ApiGatewayHandler<API
     }
   }
 
+  server.log('handleGatewayEvent UNKNOWN', { connectionId: event.requestContext.connectionId })
   return {
     statusCode: 200,
     body: '',

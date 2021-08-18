@@ -12,7 +12,7 @@ describe('createInstance', () => {
     })
 
     after(async () => {
-      tables.end()
+      await tables.end()
     })
 
     it('is type compatible with aws-lambda handler', async () => {
