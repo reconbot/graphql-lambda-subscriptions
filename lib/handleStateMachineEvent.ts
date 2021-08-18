@@ -1,9 +1,9 @@
 import { MessageType } from 'graphql-ws'
-import { ServerClosure, StateFunctionInput } from './types'
+import { ServerClosure, ServerInstance } from './types'
 import { sendMessage } from './utils/sendMessage'
 import { deleteConnection } from './utils/deleteConnection'
 
-export const handleStateMachineEvent = (c: ServerClosure) => async (input: StateFunctionInput): Promise<StateFunctionInput> => {
+export const handleStateMachineEvent = (c: ServerClosure): ServerInstance['stateMachineHandler'] => async (input) => {
   if (!c.pingpong) {
     throw new Error('Invalid pingpong settings')
   }

@@ -1,10 +1,5 @@
 import { GRAPHQL_TRANSPORT_WS_PROTOCOL, MessageType } from 'graphql-ws'
-import {
-  ApiGatewayHandler,
-  APIGatewayWebSocketEvent,
-  ServerClosure,
-  WebsocketResponse,
-} from './types'
+import { ServerClosure, ServerInstance } from './types'
 import { disconnect } from './messages/disconnect'
 import { ping } from './messages/ping'
 import { complete } from './messages/complete'
@@ -12,7 +7,7 @@ import { subscribe } from './messages/subscribe'
 import { connection_init } from './messages/connection_init'
 import { pong } from './messages/pong'
 
-export const handleGatewayEvent = (server: ServerClosure): ApiGatewayHandler<APIGatewayWebSocketEvent, WebsocketResponse> => async (event) => {
+export const handleGatewayEvent = (server: ServerClosure): ServerInstance['gatewayHandler'] => async (event) => {
   if (!event.requestContext) {
     server.log('handleGatewayEvent unknown')
     return {
