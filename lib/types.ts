@@ -74,7 +74,7 @@ export type SubscribeArgs<TRoot = any, TArgs = Record<string, any>, TContext = a
 export type SubscriptionFilter<
   TSubscribeArgs extends SubscribeArgs = SubscribeArgs,
   TReturn extends Record<string, any> = Record<string, any>
-> = Partial<TReturn> | void | ((...args: TSubscribeArgs) => MaybePromise<Partial<TReturn>> | MaybePromise<Partial<void>>)
+> = Partial<TReturn> | void | ((...args: TSubscribeArgs) => MaybePromise<Partial<TReturn> | void>)
 
 export type SubscriptionDefinition<
 T extends PubSubEvent,
@@ -90,8 +90,8 @@ export type SubscribePseudoIterable<T extends PubSubEvent, TSubscribeArgs extend
   (...args: TSubscribeArgs): AsyncGenerator<T, never, unknown>
   topicDefinitions: SubscriptionDefinition<T, TSubscribeArgs>[]
   onSubscribe?: (...args: TSubscribeArgs) => MaybePromise<void>
-  onComplete?: (...args: TSubscribeArgs) => MaybePromise<void>
   onAfterSubscribe?: (...args: TSubscribeArgs) => MaybePromise<void>
+  onComplete?: (...args: TSubscribeArgs) => MaybePromise<void>
 }
 
 

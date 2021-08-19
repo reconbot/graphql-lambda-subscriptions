@@ -30,6 +30,10 @@ const typeDefs = `
   type Subscription {
     greetings: String
     filterTest: String
+    onCompleteSideChannel: String
+    onCompleteTestClientDisconnect: String
+    onCompleteTestResolverError: String
+    onCompleteServerComplete: String
   }
 `
 
@@ -65,7 +69,60 @@ const resolvers = {
           await complete({ topic: 'filterTest' })
         },
       }),
-      resolve: ({ payload }) => {
+      resolve({ payload }) {
+        return payload.message
+      },
+    },
+    onCompleteTestClientDisconnect: {
+      subscribe: subscribe('onCompleteTestResolverError', {
+        async onComplete(_, __, { publish, complete }){
+          await publish({ topic: 'onCompleteSideChannel', payload: { message: 'onComplete' } })
+          await complete({ topic: 'onCompleteSideChannel' })
+        },
+        async onAfterSubscribe(_, __, { publish }) {
+          await publish({ topic: 'onCompleteSideChannel', payload: { message: 'subscribed' } })
+        },
+      }),
+      resolve({ payload }) {
+        return payload.message
+      },
+    },
+    onCompleteTestResolverError: {
+      subscribe: subscribe('onCompleteTestResolverError', {
+        async onComplete(_, __, { publish, complete }){
+          await publish({ topic: 'onCompleteSideChannel', payload: { message: 'onComplete' } })
+          await complete({ topic: 'onCompleteSideChannel' })
+        },
+        async onAfterSubscribe(_, __, { publish }) {
+          await publish({ topic: 'onCompleteTestResolverError', payload: { message: 'doesnt really matter does it' } })
+        },
+      }),
+      resolve() {
+        throw new Error('oh no!')
+      },
+    },
+    onCompleteServerComplete: {
+      subscribe: subscribe('onCompleteServerComplete', {
+        async onComplete(_, __, { publish, complete }){
+          await publish({ topic: 'onCompleteSideChannel', payload: { message: 'onComplete' } })
+          await complete({ topic: 'onCompleteSideChannel' })
+        },
+        async onAfterSubscribe(_, __, { publish, complete }) {
+          await publish({ topic: 'onCompleteSideChannel', payload: { message: 'subscribed' } })
+          await complete({ topic: 'onCompleteServerComplete' })
+        },
+      }),
+      resolve({ payload }) {
+        return payload.message
+      },
+    },
+    onCompleteSideChannel: {
+      subscribe: subscribe('onCompleteSideChannel', {
+        async onAfterSubscribe(_, __, { publish }) {
+          await publish({ topic: 'onCompleteSideChannel', payload: { message: 'start' } })
+        },
+      }),
+      resolve({ payload }) {
         return payload.message
       },
     },

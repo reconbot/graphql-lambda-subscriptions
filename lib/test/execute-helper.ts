@@ -23,15 +23,17 @@ export const executeQuery = async (query: string): Promise<unknown> => {
   })
 }
 
-type SubscriptionResult = Promise<{
+type SubscriptionResult = {
   values: AsyncGenerator<unknown, unknown, unknown>
   unsubscribe: () => void
-}>
+  close: () => Promise<void> | void
+}
 
-export const executeSubscription = async (query: string): SubscriptionResult => {
+export const executeSubscription = (query: string, { lazy }: {lazy?: boolean} = {}): SubscriptionResult => {
   const client = createClient({
     url,
     webSocketImpl: WebSocket,
+    lazy,
   })
 
   const values = deferGenerator()
@@ -50,5 +52,7 @@ export const executeSubscription = async (query: string): SubscriptionResult => 
     },
   )
 
-  return { values: values.generator, unsubscribe }
+  const close = () => client.dispose()
+
+  return { values: values.generator, unsubscribe, close }
 }
