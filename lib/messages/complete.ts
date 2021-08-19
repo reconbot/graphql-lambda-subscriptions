@@ -12,6 +12,7 @@ import { isArray } from '../utils/isArray'
 /** Handler function for 'complete' message. */
 export const complete: MessageHandler<CompleteMessage> =
   async ({ server, event, message }) => {
+    server.log('messages:complete', { connectionId: event.requestContext.connectionId })
     try {
       const topicSubscriptions = await collect(server.mapper.query(server.model.Subscription, {
         id: `${event.requestContext.connectionId}|${message.id}`,
@@ -38,12 +39,12 @@ export const complete: MessageHandler<CompleteMessage> =
       const [field, root, args, context, info] = getResolverAndArgs(server)(execContext)
 
       const onComplete = (field?.subscribe as SubscribePseudoIterable<PubSubEvent>)?.onComplete
-      if (onComplete) {
-        await onComplete(root, args, context, info)
-      }
+      server.log('messages:complete:onComplete', { onComplete: !!onComplete })
+      await onComplete?.(root, args, context, info)
 
       await Promise.all(topicSubscriptions.map(sub => server.mapper.delete(sub)))
     } catch (err) {
+      server.log('messages:complete:onError', { err, event })
       await server.onError?.(err, { event, message })
       await deleteConnection(server)(event.requestContext)
     }

@@ -3,8 +3,28 @@
 
 This is a fork of [subscriptionless](https://github.com/andyrichardson/subscriptionless) that is built to work with [Architect](https://arc.codes) and tested  with the [Architect Sandbox](https://arc.codes/docs/en/reference/cli/sandbox). There's no reason why it wont work with Serverless or other deploy tools but their support is not a goal.
 
+## API
 
-# Old Readme
+### `subscribe(topic: string, options?: SubscribeOptions): SubscribePseudoIterable`
+
+Subscribe is the most important method in the library. It's the primary difference between `graphql-ws` and `graphql-lambda-subscriptions`. It returns a `SubscribePseudoIterable` that pretends to be an async iterator that you put on the `subscribe` resolver for your Subscription. In reality it includes a few properties that we use to subscribe to events and fire lifecycle functions.
+
+```ts
+interface SubscribeOptions {
+    filter?: (...args: TSubscribeArgs) => MaybePromise<Partial<Payload>|void>;
+    onSubscribe?: (...args: TSubscribeArgs) => MaybePromise<void>;
+    onAfterSubscribe?: (...args: TSubscribeArgs) => MaybePromise<void>;
+    onComplete?: (...args: TSubscribeArgs) => MaybePromise<void>;
+}
+```
+
+- `topic`: The you subscribe to the topic and can filter based upon the topics payload.
+- `filter`: An object that the payload will be matched against (or a function that produces the object). If the payload's field matches the subscription will receive the event. If the payload is missing the field the subscription will receive the event.
+- `onSubscribe`: A function that gets the subscription information (like arguments) it can throw if you don't want the subscription to subscribe.
+- `onAfterSubscribe`: A function that gets the subscription information (like arguments) and can fire initial events or record information.
+- `onComplete`: A function that fires at least once when a connection disconnects, a client sends a "complete" message, or the server sends a "complete" message. Because of the nature of aws lambda, it's possible for a client to send a "complete" message and disconnect and those events executing on lambda out of order. Which why this function can be called up to twice.
+
+## Old Readme
 
 ## About
 
@@ -282,7 +302,7 @@ Wrap any `subscribe` function call in a `withFilter` to provide filter condition
 > Note: If a function is provided, it will be called **on subscription start** and must return a serializable object.
 
 ```ts
-import { withFilter, subscribe } from 'subscriptionless/subscribe';
+import { subscribe } from 'subscriptionless/subscribe';
 
 // Subscription agnostic filter
 withFilter(subscribe('MY_TOPIC'), {

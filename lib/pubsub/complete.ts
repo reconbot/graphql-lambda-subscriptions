@@ -41,10 +41,8 @@ export const complete = (server: ServerClosure): ServerInstance['complete'] => a
     const [field, root, args, context, info] = getResolverAndArgs(server)(execContext)
 
     const onComplete = (field?.subscribe as SubscribePseudoIterable<PubSubEvent>)?.onComplete
-    if (onComplete) {
-      await onComplete(root, args, context, info)
-    }
-
+    server.log('pubsub:complete:onComplete', { onComplete: !!onComplete })
+    await onComplete?.(root, args, context, info)
   })
   await Promise.all(iters)
 }
