@@ -1,9 +1,32 @@
 # Graphql Lambda Subscriptions
 [![Release](https://github.com/reconbot/graphql-lambda-subscriptions/actions/workflows/test.yml/badge.svg)](https://github.com/reconbot/graphql-lambda-subscriptions/actions/workflows/test.yml)
 
-This is a fork of [subscriptionless](https://github.com/andyrichardson/subscriptionless) that is built to work with [Architect](https://arc.codes) and tested  with the [Architect Sandbox](https://arc.codes/docs/en/reference/cli/sandbox). There's no reason why it wont work with Serverless or other deploy tools but their support is not a goal.
+This is a fork of [`subscriptionless`](https://github.com/andyrichardson/subscriptionless) and is a Amazon Lambda Serverless equivalent to [graphQL-ws](https://github.com/enisdenjo/graphql-ws). It follows the [`graphql-ws prototcol`](https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md). It is tested with the [Architect Sandbox](https://arc.codes/docs/en/reference/cli/sandbox) against `graphql-ws` directly and run in production today. For many applications `graphql-lambda-subscriptions` should do what `graphql-ws` does for you today without having to run a server.
+
+As `subscriptionless`'s tagline goes;
+
+> Have all the functionality of GraphQL subscriptions on a stateful server without the cost.
+
+## Why a fork?
+
+I had different requirements and needed more features. This project wouldn't exist without `subscriptionless` and you should totally check it out.
+
+## Features
+
+- Only needs DynamoDB, API Gateway and Lambda (no app sync or other platform required, can use step functions for ping/pong support)
+- Provides a Pub/Sub system to broadcast events to subscriptions
+- Provides hooks for the full lifecycle of a subscription
+- Type compatible with GraphQL and [`nexus.js`](https://nexusjs.org)
+
+## Quick Start
+
+Since there are many ways to deploy to amazon lambda I'm going to have to get opinionated in the quickstart and pick [Architect](https://arc.codes). `graphql-lambda-subscriptions` should work on Lambda regardless of your deployment and packaging framework. Take a look at the [arc-basic-events](mocks/arc-basic-events) mock used for integration testing for an example of using it with Architect.
+
+More to come...
 
 ## API
+
+This should be generated...
 
 ### `subscribe(topic: string, options?: SubscribeOptions): SubscribePseudoIterable`
 
@@ -20,39 +43,11 @@ interface SubscribeOptions {
 
 - `topic`: The you subscribe to the topic and can filter based upon the topics payload.
 - `filter`: An object that the payload will be matched against (or a function that produces the object). If the payload's field matches the subscription will receive the event. If the payload is missing the field the subscription will receive the event.
-- `onSubscribe`: A function that gets the subscription information (like arguments) it can throw if you don't want the subscription to subscribe.
+- `onSubscribe`: A function that gets the subscription information (like arguments) it can return an array of errors if you don't want the subscription to subscribe.
 - `onAfterSubscribe`: A function that gets the subscription information (like arguments) and can fire initial events or record information.
 - `onComplete`: A function that fires at least once when a connection disconnects, a client sends a "complete" message, or the server sends a "complete" message. Because of the nature of aws lambda, it's possible for a client to send a "complete" message and disconnect and those events executing on lambda out of order. Which why this function can be called up to twice.
 
 ## Old Readme
-
-## About
-
-GraphQL subscriptions for AWS Lambda and API Gateway WebSockets.
-
-Have all the functionality of GraphQL subscriptions on a stateful server without the cost.
-
-> Note: This project uses the [graphql-ws protocol](https://github.com/enisdenjo/graphql-ws) under the hood.
-
-## ⚠️ Limitations
-
-Seriously, **read this first** before you even think about using this.
-
-<details>
-
-<summary>This is in alpha</summary>
-
-This is Alpha software and should be treated as such.
-
-</details>
-
-<details>
-
-<summary>AWS API Gateway Limitations</summary>
-
-There are a few noteworthy limitations to the AWS API Gateway WebSocket implementation.
-
-> Note: If you work on AWS and want to run through this, hit me up!
 
 #### Ping/Pong
 
@@ -74,7 +69,6 @@ API Gateway's current socket closing functionality doesn't support any kind of m
 
 Because of this limitation, there is no clear way to communicate subprotocol errors to the client. In the case of a subprotocol error the socket will be closed by the server (with no meaningful disconnect payload).
 
-</details>
 
 ## Setup
 

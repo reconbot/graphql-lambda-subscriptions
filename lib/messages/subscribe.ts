@@ -1,5 +1,5 @@
 import { SubscribeMessage, MessageType } from 'graphql-ws'
-import { validate, parse, GraphQLError } from 'graphql'
+import { validate, parse } from 'graphql'
 import {
   buildExecutionContext,
   assertValidExecutionArguments,
@@ -83,17 +83,16 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
 
   const { topicDefinitions, onSubscribe, onAfterSubscribe } = field.subscribe as SubscribePseudoIterable<PubSubEvent>
 
-  try {
-    server.log('onSubscribe', { onSubscribe: !!onSubscribe })
-    await onSubscribe?.(root, args, context, info)
-  } catch (error) {
-    server.log('onSubscribe', { error })
+  server.log('onSubscribe', { onSubscribe: !!onSubscribe })
+  const onSubscribeErrors = await onSubscribe?.(root, args, context, info)
+  if (onSubscribeErrors){
+    server.log('onSubscribe', { onSubscribeErrors })
     return sendMessage(server)({
       ...event.requestContext,
       message: {
         type: MessageType.Error,
         id: message.id,
-        payload: [new GraphQLError(error.message)],
+        payload: onSubscribeErrors,
       },
     })
   }

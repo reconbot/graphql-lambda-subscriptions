@@ -1,6 +1,7 @@
 import ws from 'ws'
 import { useServer } from 'graphql-ws/lib/use/ws'
 import { makeExecutableSchema } from '@graphql-tools/schema'
+import { GraphQLError } from 'graphql'
 
 const PORT = 4000
 
@@ -11,6 +12,7 @@ const typeDefs = `
   type Subscription {
     greetings: String
     onSubscribeError: String
+    onResolveError: String
   }
 `
 
@@ -30,6 +32,14 @@ const resolvers = {
       // eslint-disable-next-line require-yield
       subscribe: async function*() {
         throw new Error('onSubscribeError')
+      },
+    },
+    onResolveError: {
+      subscribe: async function*(){
+        yield { greetings:  'yoyo' }
+      },
+      resolve() {
+        throw new Error('resolver error')
       },
     },
   },
@@ -62,17 +72,26 @@ export const startGqlWSServer = async () => {
   })
 
   useServer(
-    { schema },
+    {
+      schema,
+      async onSubscribe(ctx, message) {
+        if (message?.payload?.query === 'subscription { onSubscribeError }') {
+          return [
+            new GraphQLError('onSubscribeError'),
+          ]
+        }
+      },
+    },
     server,
   )
 
   await new Promise(resolve => server.on('listening', resolve))
   // console.log('server started')
 
-  const close = () => new Promise<void>(resolve => server.close(() => resolve()))
+  const stop = () => new Promise<void>(resolve => server.close(() => resolve()))
 
   return {
     url: `ws://localhost:${PORT}`,
-    close,
+    stop,
   }
 }

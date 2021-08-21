@@ -18,33 +18,53 @@ describe('Events', () => {
   })
   describe('Basic Events', () => {
     it('queries', async () => {
-      const { url, close } = await startGqlWSServer()
+      const { url, stop } = await startGqlWSServer()
 
       const lambdaResult = await collect(executeQuery('{ hello }'))
       const gqlWSResult = await collect(executeQuery('{ hello }', { url }))
       assert.deepEqual(lambdaResult, gqlWSResult)
 
-      await close()
+      await stop()
     })
 
     it('subscribes', async () => {
-      const { url, close } = await startGqlWSServer()
+      const { url, stop } = await startGqlWSServer()
 
       const lambdaResult = await collect(executeQuery('subscription { greetings }'))
       const gqlWSResult = await collect(executeQuery('subscription { greetings }', { url }))
 
       assert.deepEqual(lambdaResult, gqlWSResult)
-      await close()
+      await stop()
     })
 
     it('errors on query validation failures', async () => {
-      const { url, close } = await startGqlWSServer()
+      const { url, stop } = await startGqlWSServer()
 
       const lambdaResult = await collect(executeQuery('{ yo }'))
       const gqlWSResult = await collect(executeQuery('{ yo }', { url }))
 
       assert.deepEqual(lambdaResult, gqlWSResult)
-      await close()
+      await stop()
+    })
+
+    it('errors when a resolver errors', async () => {
+      const { url, stop } = await startGqlWSServer()
+
+      const lambdaResult = await collect(executeQuery('subscription { onResolveError }'))
+      const gqlWSResult = await collect(executeQuery('subscription { onResolveError }', { url }))
+
+      assert.deepEqual(lambdaResult, gqlWSResult)
+      await stop()
+    })
+
+    it('errors with validation errors', async () => {
+      const { url, stop } = await startGqlWSServer()
+
+      const lambdaResult = await collect(executeQuery('subscription { onSubscribeError }'))
+      const gqlWSResult = await collect(executeQuery('subscription { onSubscribeError }', { url }))
+
+      assert.deepEqual(lambdaResult, gqlWSResult)
+      await stop()
     })
   })
 
@@ -88,14 +108,19 @@ describe('Events', () => {
       await unsubscribe()
       assert.containSubset((await collect(sideChannel)), [{ type: 'next', payload: { data: { sideChannel: 'onComplete' } } }, { type: 'complete' }])
     })
-    // confirm behavior with graphql-ws but we don't currently error
-    // it('fires when the resolver errors', async () => {
-    //   const { values } = executeSubscription('subscription { sideChannel }')
-    //   assert.deepEqual(await values.next(), { done: false, value: { sideChannel: 'start' } })
-    //   const { values: errorValuesGen } = executeSubscription('subscription { onCompleteTestResolverError }')
-    //   assert.deepEqual(await collect(errorValuesGen), [])
-    //   assert.deepEqual(await collect(values), [{ sideChannel: 'onComplete' }])
-    // })
+    it('fires when the resolver errors', async () => {
+      const sideChannel = executeQuery('subscription { sideChannel }')
+      assert.containSubset(await sideChannel.next(), { done: false, value: { type: 'next', payload: { data: { sideChannel: 'start' } } } })
+      const errorValuesGen = executeQuery('subscription { onResolveError }')
+      assert.containSubset(await collect(errorValuesGen), [
+        { type: 'next', payload: { errors: [{ message: 'resolver error' }] } },
+        { type: 'complete' },
+      ])
+      assert.containSubset(await collect(sideChannel), [
+        { type: 'next', payload: { data: { sideChannel: 'onComplete' } } },
+        { type: 'complete' },
+      ])
+    })
     it('fires when the server completes', async () => {
       const sideChannel = executeQuery('subscription { sideChannel }')
       assert.containSubset(await sideChannel.next(), { done: false, value: { type: 'next', payload: { data: { sideChannel: 'start' } } } })
