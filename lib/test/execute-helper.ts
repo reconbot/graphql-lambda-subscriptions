@@ -14,9 +14,11 @@ const messageToString = (message) => {
 export const executeQuery = async function* (query: string, {
   url = URL,
   stayConnected = false,
+  timeout = 20_000,
 }: {
   url?: string
   stayConnected?: boolean
+  timeout?: number
 } = {}): AsyncGenerator<unknown, void, unknown> {
   let id = 1
   const ws = new WebSocket(url, 'graphql-transport-ws')
@@ -39,6 +41,14 @@ export const executeQuery = async function* (query: string, {
     incomingMessages.queueValue({ type: 'close', code, reason: reason.toString() })
     incomingMessages.queueReturn()
   })
+
+  let timer: NodeJS.Timeout|null = null
+  if (timeout) {
+    timer = setTimeout(() => {
+      incomingMessages.queueValue({ type: 'timeout', timeout })
+      incomingMessages.queueReturn()
+    }, timeout)
+  }
 
   const send = (data: any) => new Promise<void>(resolve => ws.send(JSON.stringify(data), () => resolve()))
 
@@ -64,6 +74,9 @@ export const executeQuery = async function* (query: string, {
 
   if (!stayConnected){
     ws.close()
+  }
+  if (timer) {
+    clearTimeout(timer)
   }
 }
 

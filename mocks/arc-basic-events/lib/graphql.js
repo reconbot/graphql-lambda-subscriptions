@@ -3,6 +3,7 @@ const { makeExecutableSchema } = require('@graphql-tools/schema')
 const { tables: arcTables } = require('@architect/functions')
 const { createInstance, subscribe } = require('../../../dist')
 const { ApiGatewayManagementApi } = require('aws-sdk')
+const { GraphQLError } = require('graphql')
 
 const makeManagementAPI = () => {
   const ARC_WSS_URL = process.env.ARC_WSS_URL
@@ -31,7 +32,7 @@ const typeDefs = `
     onSubscribeError: String
     sideChannel: String
     onCompleteTestClientDisconnect: String
-    onCompleteTestResolverError: String
+    onResolveError: String
     onCompleteServerComplete: String
   }
 `
@@ -77,7 +78,7 @@ const resolvers = {
         async onSubscribe(_, __, { publish, complete }){
           await publish({ topic: 'sideChannel', payload: { message: 'onSubscribe' } })
           await complete({ topic: 'sideChannel' })
-          throw new Error('onSubscribeError')
+          return [new GraphQLError('onSubscribeError')]
         },
       }),
       resolve({ payload }) {
@@ -98,18 +99,19 @@ const resolvers = {
         return payload.message
       },
     },
-    onCompleteTestResolverError: {
-      subscribe: subscribe('onCompleteTestResolverError', {
+    onResolveError: {
+      subscribe: subscribe('onResolveError', {
         async onComplete(_, __, { publish, complete }){
           await publish({ topic: 'sideChannel', payload: { message: 'onComplete' } })
           await complete({ topic: 'sideChannel' })
         },
-        async onAfterSubscribe(_, __, { publish }) {
-          await publish({ topic: 'onCompleteTestResolverError', payload: { message: 'doesnt really matter does it' } })
+        async onAfterSubscribe(_, __, { publish, complete }) {
+          await publish({ topic: 'onResolveError', payload: { message: 'doesnt really matter does it' } })
+          await complete({ topic: 'onResolveError' })
         },
       }),
       resolve() {
-        throw new Error('oh no!')
+        throw new Error('resolver error')
       },
     },
     onCompleteServerComplete: {

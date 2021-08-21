@@ -18,3 +18,8 @@ describe('collapseKeys', () => {
     })
   })
 })
+
+describe('getFilteredSubs', () => {
+  it('can match on payload')
+  it('can match on connectionId')
+})

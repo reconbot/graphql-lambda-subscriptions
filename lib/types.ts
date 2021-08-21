@@ -3,7 +3,7 @@
 import { ConnectionInitMessage, PingMessage, PongMessage } from 'graphql-ws'
 import { DataMapper } from '@aws/dynamodb-data-mapper'
 import { APIGatewayEventRequestContext, APIGatewayProxyEvent } from 'aws-lambda'
-import { GraphQLResolveInfo, GraphQLSchema } from 'graphql'
+import { GraphQLError, GraphQLResolveInfo, GraphQLSchema } from 'graphql'
 import { DynamoDB } from 'aws-sdk'
 import { Subscription } from './model/Subscription'
 import { Connection } from './model/Connection'
@@ -89,7 +89,7 @@ export type SubscribeHandler = <T extends PubSubEvent>(...args: any[]) => Subscr
 export type SubscribePseudoIterable<T extends PubSubEvent, TSubscribeArgs extends SubscribeArgs = SubscribeArgs> = {
   (...args: TSubscribeArgs): AsyncGenerator<T, never, unknown>
   topicDefinitions: SubscriptionDefinition<T, TSubscribeArgs>[]
-  onSubscribe?: (...args: TSubscribeArgs) => MaybePromise<void>
+  onSubscribe?: (...args: TSubscribeArgs) => MaybePromise<void|GraphQLError[]>
   onAfterSubscribe?: (...args: TSubscribeArgs) => MaybePromise<void>
   onComplete?: (...args: TSubscribeArgs) => MaybePromise<void>
 }
@@ -98,12 +98,11 @@ export type SubscribePseudoIterable<T extends PubSubEvent, TSubscribeArgs extend
 export interface SubscribeOptions<T extends PubSubEvent, TSubscribeArgs extends SubscribeArgs = SubscribeArgs> {
   filter?: SubscriptionFilter<TSubscribeArgs, T['payload']>
   /**
-   * A function that gets the subscription information (like field args) it can throw if you don't want the subscription to subscribe.
-   * Gets resolver arguments to perform necessary work before a subscription is allowed (checking arguments, permissions, etc)
-   *
-   * If this callback errors the an error event is sent but the connection remains open.
+   * A function that gets the subscription information (like field args) it can return an array of GraphqlErrors if you don't want the
+   * subscription to subscribe. Gets resolver arguments to perform necessary work before a subscription is allowed (checking arguments,
+   *  permissions, etc)
    */
-  onSubscribe?: (...args: TSubscribeArgs) => MaybePromise<void>
+  onSubscribe?: (...args: TSubscribeArgs) => MaybePromise<void|GraphQLError[]>
   onComplete?: (...args: TSubscribeArgs) => MaybePromise<void>
   onAfterSubscribe?: (...args: TSubscribeArgs) => MaybePromise<void>
 }
