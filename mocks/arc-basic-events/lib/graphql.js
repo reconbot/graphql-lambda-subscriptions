@@ -1,27 +1,25 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 const { makeExecutableSchema } = require('@graphql-tools/schema')
-const { tables: arcTables, ws } = require('@architect/functions')
+const { tables: arcTables } = require('@architect/functions')
 const { createInstance, subscribe } = require('../../../dist')
+const { ApiGatewayManagementApi } = require('aws-sdk')
 
-const FakeApiGatewayManagementApi = {
-  postToConnection({ ConnectionId: id, Data }) {
-    return {
-      async promise() {
-        // console.log('postToConnection', { id, Data })
-        const payload = JSON.parse(Data)
-        await ws.send({ id, payload })
-      },
-    }
-  },
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  deleteConnection({ ConnectionId }) {
-    return {
-      async promise() {
-        // console.log({ ConnectionId }, 'deleteConnection not implemented')
-      },
-    }
-  },
+const makeManagementAPI = () => {
+  const ARC_WSS_URL = process.env.ARC_WSS_URL
+  const port = process.env.ARC_INTERNAL || '3332'
+
+  if (process.env.NODE_ENV === 'testing') {
+    return new ApiGatewayManagementApi({
+      apiVersion: '2018-11-29',
+      endpoint: `http://localhost:${port}/_arc/ws`,
+      region: process.env.AWS_REGION || 'us-west-2',
+    })
+  }
+  return new ApiGatewayManagementApi({
+    apiVersion: '2018-11-29',
+    endpoint: `${ARC_WSS_URL.replace(/$ws/, 'http')}`,
+  })
 }
-
 
 const typeDefs = `
   type Query {
@@ -30,7 +28,8 @@ const typeDefs = `
   type Subscription {
     greetings: String
     filterTest: String
-    onCompleteSideChannel: String
+    onSubscribeError: String
+    sideChannel: String
     onCompleteTestClientDisconnect: String
     onCompleteTestResolverError: String
     onCompleteServerComplete: String
@@ -73,14 +72,26 @@ const resolvers = {
         return payload.message
       },
     },
+    onSubscribeError: {
+      subscribe: subscribe('onSubscribeError', {
+        async onSubscribe(_, __, { publish, complete }){
+          await publish({ topic: 'sideChannel', payload: { message: 'onSubscribe' } })
+          await complete({ topic: 'sideChannel' })
+          throw new Error('onSubscribeError')
+        },
+      }),
+      resolve({ payload }) {
+        return payload.message
+      },
+    },
     onCompleteTestClientDisconnect: {
-      subscribe: subscribe('onCompleteTestResolverError', {
+      subscribe: subscribe('onCompleteTestClientDisconnect', {
         async onComplete(_, __, { publish, complete }){
-          await publish({ topic: 'onCompleteSideChannel', payload: { message: 'onComplete' } })
-          await complete({ topic: 'onCompleteSideChannel' })
+          await publish({ topic: 'sideChannel', payload: { message: 'onComplete' } })
+          await complete({ topic: 'sideChannel' })
         },
         async onAfterSubscribe(_, __, { publish }) {
-          await publish({ topic: 'onCompleteSideChannel', payload: { message: 'subscribed' } })
+          await publish({ topic: 'sideChannel', payload: { message: 'subscribed' } })
         },
       }),
       resolve({ payload }) {
@@ -90,8 +101,8 @@ const resolvers = {
     onCompleteTestResolverError: {
       subscribe: subscribe('onCompleteTestResolverError', {
         async onComplete(_, __, { publish, complete }){
-          await publish({ topic: 'onCompleteSideChannel', payload: { message: 'onComplete' } })
-          await complete({ topic: 'onCompleteSideChannel' })
+          await publish({ topic: 'sideChannel', payload: { message: 'onComplete' } })
+          await complete({ topic: 'sideChannel' })
         },
         async onAfterSubscribe(_, __, { publish }) {
           await publish({ topic: 'onCompleteTestResolverError', payload: { message: 'doesnt really matter does it' } })
@@ -104,11 +115,11 @@ const resolvers = {
     onCompleteServerComplete: {
       subscribe: subscribe('onCompleteServerComplete', {
         async onComplete(_, __, { publish, complete }){
-          await publish({ topic: 'onCompleteSideChannel', payload: { message: 'onComplete' } })
-          await complete({ topic: 'onCompleteSideChannel' })
+          await publish({ topic: 'sideChannel', payload: { message: 'onComplete' } })
+          await complete({ topic: 'sideChannel' })
         },
         async onAfterSubscribe(_, __, { publish, complete }) {
-          await publish({ topic: 'onCompleteSideChannel', payload: { message: 'subscribed' } })
+          await publish({ topic: 'sideChannel', payload: { message: 'subscribed' } })
           await complete({ topic: 'onCompleteServerComplete' })
         },
       }),
@@ -116,10 +127,10 @@ const resolvers = {
         return payload.message
       },
     },
-    onCompleteSideChannel: {
-      subscribe: subscribe('onCompleteSideChannel', {
+    sideChannel: {
+      subscribe: subscribe('sideChannel', {
         async onAfterSubscribe(_, __, { publish }) {
-          await publish({ topic: 'onCompleteSideChannel', payload: { message: 'start' } })
+          await publish({ topic: 'sideChannel', payload: { message: 'start' } })
         },
       }),
       resolve({ payload }) {
@@ -158,10 +169,10 @@ const buildSubscriptionServer = async () => {
       connections: ensureName('Connection'),
       subscriptions: ensureName('Subscription'),
     },
-    apiGatewayManagementApi: FakeApiGatewayManagementApi,
+    apiGatewayManagementApi: makeManagementAPI(),
     onError: err => {
-      console.log('onError', err)
-      throw err
+      console.log('onError', err.message)
+      // throw err
     },
   })
   return server

@@ -1,6 +1,5 @@
-import AggregateError from 'aggregate-error'
 import { SubscribeMessage, MessageType } from 'graphql-ws'
-import { validate, parse } from 'graphql'
+import { validate, parse, GraphQLError } from 'graphql'
 import {
   buildExecutionContext,
   assertValidExecutionArguments,
@@ -26,22 +25,30 @@ export const subscribe: MessageHandler<SubscribeMessage> =
 
 const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, event, message }) => {
   const connectionId = event.requestContext.connectionId
+  server.log('subscribe %j', { connectionId, query: message.payload.query })
 
   const connection = await server.mapper.get(
     Object.assign(new server.model.Connection(), {
       id: connectionId,
     }),
   )
-  const connectionParams = connection.payload || {}
 
   // Check for variable errors
   const errors = validateMessage(server)(message)
 
   if (errors) {
-    throw new AggregateError(errors)
+    server.log('subscribe:validateError', errors)
+    return sendMessage(server)({
+      ...event.requestContext,
+      message: {
+        type: MessageType.Error,
+        id: message.id,
+        payload: errors,
+      },
+    })
   }
 
-  const contextValue = await constructContext({ server, connectionParams, connectionId })
+  const contextValue = await constructContext({ server, connectionParams: connection.payload, connectionId })
 
   const execContext = buildExecutionContext(
     server.schema,
@@ -57,11 +64,9 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
     return sendMessage(server)({
       ...event.requestContext,
       message: {
-        type: MessageType.Next,
+        type: MessageType.Error,
         id: message.id,
-        payload: {
-          errors: execContext,
-        },
+        payload: execContext,
       },
     })
   }
@@ -78,14 +83,26 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
 
   const { topicDefinitions, onSubscribe, onAfterSubscribe } = field.subscribe as SubscribePseudoIterable<PubSubEvent>
 
-  server.log('onSubscribe', { onSubscribe: !!onSubscribe })
-  await onSubscribe?.(root, args, context, info)
+  try {
+    server.log('onSubscribe', { onSubscribe: !!onSubscribe })
+    await onSubscribe?.(root, args, context, info)
+  } catch (error) {
+    server.log('onSubscribe', { error })
+    return sendMessage(server)({
+      ...event.requestContext,
+      message: {
+        type: MessageType.Error,
+        id: message.id,
+        payload: [new GraphQLError(error.message)],
+      },
+    })
+  }
 
   await Promise.all(topicDefinitions.map(async ({ topic, filter }) => {
     const filterData = typeof filter === 'function' ? await filter(root, args, context, info) : filter
 
     const subscription = Object.assign(new server.model.Subscription(), {
-      id: `${connectionId}|${message.id}`,
+      id: `${connection.id}|${message.id}`,
       topic,
       filter: filterData || {},
       subscriptionId: message.id,
@@ -93,8 +110,8 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
         variableValues: args,
         ...message.payload,
       },
-      connectionId,
-      connectionParams,
+      connectionId: connection.id,
+      connectionParams: connection.payload,
       requestContext: event.requestContext,
       ttl: connection.ttl,
     })
@@ -127,7 +144,7 @@ const validateMessage = (server: ServerClosure) => (message: SubscribeMessage) =
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function executeQuery(server: ServerClosure, message: SubscribeMessage, contextValue: any, event: APIGatewayWebSocketEvent) {
-  server.log('executeQuery', { connectionId: event.requestContext.connectionId })
+  server.log('executeQuery', { connectionId: event.requestContext.connectionId, query: message.payload.query })
 
   const result = await execute(
     server.schema,
