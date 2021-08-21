@@ -174,10 +174,43 @@ const buildSubscriptionServer = async () => {
     apiGatewayManagementApi: makeManagementAPI(),
     onError: err => {
       console.log('onError', err.message)
-      // throw err
     },
   })
   return server
 }
 
-module.exports = { buildSubscriptionServer }
+const fetchTableNames = async () => {
+  const tables = await arcTables()
+
+  const ensureName = (table) => {
+    const actualTableName = tables.name(table)
+    if (!actualTableName) {
+      throw new Error(`No table found for ${table}`)
+    }
+    return actualTableName
+  }
+
+  return {
+    connections: ensureName('Connection'),
+    subscriptions: ensureName('Subscription'),
+  }
+
+}
+
+const subscriptionServer = createInstance({
+  dynamodb: arcTables.db,
+  schema,
+  context: () => {
+    return {
+      publish: subscriptionServer.publish,
+      complete: subscriptionServer.complete,
+    }
+  },
+  tableNames: fetchTableNames(),
+  apiGatewayManagementApi: makeManagementAPI(),
+  onError: err => {
+    console.log('onError', err.message)
+  },
+})
+
+module.exports = { subscriptionServer, buildSubscriptionServer }

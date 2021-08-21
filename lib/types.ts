@@ -10,10 +10,13 @@ import { Connection } from './model/Connection'
 
 export type ServerArgs = {
   schema: GraphQLSchema
-  dynamodb: DynamoDB
-  apiGatewayManagementApi?: ApiGatewayManagementApiSubset
-  context?: ((arg: { connectionParams: any, connectionId: string }) => MaybePromise<object>) | object
-  tableNames?: Partial<TableNames>
+  dynamodb: MaybePromise<DynamoDB>
+  apiGatewayManagementApi?: MaybePromise<ApiGatewayManagementApiSubset>
+  tableNames?: MaybePromise<Partial<TableNames>>
+  /*
+    Makes the context object for all operations defaults to { connectionInitPayload, connectionId }
+  */
+  context?: ((arg: { connectionInitPayload: any, connectionId: string }) => MaybePromise<object>) | object
   pingpong?: {
     machine: string
     delay: number
@@ -21,7 +24,9 @@ export type ServerArgs = {
   }
   onConnect?: (e: { event: APIGatewayWebSocketEvent }) => MaybePromise<void>
   onDisconnect?: (e: { event: APIGatewayWebSocketEvent }) => MaybePromise<void>
-  /* Takes connection_init event and returns payload to be persisted (may include auth steps) */
+  /*
+    Takes connection_init event and returns the connectionInitPayload to be persisted. Throw if you'd like the connection to be disconnected. Useful for auth.
+  */
   onConnectionInit?: (e: {
     event: APIGatewayWebSocketEvent
     message: ConnectionInitMessage
@@ -35,6 +40,9 @@ export type ServerArgs = {
     message: PongMessage
   }) => MaybePromise<void>
   onError?: (error: any, context: any) => MaybePromise<void>
+  /*
+    Defaults to debug('graphql-lambda-subscriptions') from https://www.npmjs.com/package/debug
+  */
   log?: LoggerFunction
 }
 
@@ -47,10 +55,11 @@ export type ServerClosure = {
     Connection: typeof Connection
   }
   log: LoggerFunction
-} & Omit<ServerArgs, 'tableNames'>
+  apiGatewayManagementApi?: ApiGatewayManagementApiSubset
+} & Omit<ServerArgs, 'tableNames' | 'dynamodb'>
 
 export interface ServerInstance {
-  gatewayHandler: ApiGatewayHandler<APIGatewayWebSocketEvent, WebsocketResponse>
+  webSocketHandler: ApiSebSocketHandler<APIGatewayWebSocketEvent, WebSocketResponse>
   stateMachineHandler: (input: StateFunctionInput) => Promise<StateFunctionInput>
   publish: (event: PubSubEvent) => Promise<void>
   complete: (event: PartialBy<PubSubEvent, 'payload'>) => Promise<void>
@@ -63,7 +72,7 @@ export type TableNames = {
 
 export type LoggerFunction = (input: string, obj?: any) => void
 
-export type WebsocketResponse = {
+export type WebSocketResponse = {
   statusCode: number
   headers?: Record<string, string>
   body: string
@@ -139,6 +148,6 @@ export interface ApiGatewayManagementApiSubset {
   deleteConnection(input: { ConnectionId: string }): { promise: () => Promise<void> }
 }
 
-export type ApiGatewayHandler<TEvent = any, TResult = any> = (event: TEvent) => Promise<TResult>
+export type ApiSebSocketHandler<TEvent = any, TResult = any> = (event: TEvent) => Promise<TResult>
 
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>

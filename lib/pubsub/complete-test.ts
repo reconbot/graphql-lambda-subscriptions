@@ -12,7 +12,6 @@ describe('pubsub:complete', () => {
   })
 
   it('takes a topic', async () => {
-    const server = await mockServerContext()
-    await complete(server)({ topic: 'Topic12' })
+    await complete(mockServerContext())({ topic: 'Topic12' })
   })
 })

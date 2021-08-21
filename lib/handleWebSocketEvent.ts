@@ -7,9 +7,10 @@ import { subscribe } from './messages/subscribe'
 import { connection_init } from './messages/connection_init'
 import { pong } from './messages/pong'
 
-export const handleGatewayEvent = (server: ServerClosure): ServerInstance['gatewayHandler'] => async (event) => {
+export const handleWebSocketEvent = (serverPromise: Promise<ServerClosure>): ServerInstance['webSocketHandler'] => async (event) => {
+  const server = await serverPromise
   if (!event.requestContext) {
-    server.log('handleGatewayEvent unknown')
+    server.log('handleWebSocketEvent unknown')
     return {
       statusCode: 200,
       body: '',
@@ -17,7 +18,7 @@ export const handleGatewayEvent = (server: ServerClosure): ServerInstance['gatew
   }
 
   if (event.requestContext.eventType === 'CONNECT') {
-    server.log('handleGatewayEvent CONNECT', { connectionId: event.requestContext.connectionId })
+    server.log('handleWebSocketEvent CONNECT', { connectionId: event.requestContext.connectionId })
     await server.onConnect?.({ event })
     return {
       statusCode: 200,
@@ -30,7 +31,7 @@ export const handleGatewayEvent = (server: ServerClosure): ServerInstance['gatew
 
   if (event.requestContext.eventType === 'MESSAGE') {
     const message = event.body === null ? null : JSON.parse(event.body)
-    server.log('handleGatewayEvent MESSAGE', { connectionId: event.requestContext.connectionId, type: message.type })
+    server.log('handleWebSocketEvent MESSAGE', { connectionId: event.requestContext.connectionId, type: message.type })
 
     if (message.type === MessageType.ConnectionInit) {
       await connection_init({ server, event, message })
@@ -74,7 +75,7 @@ export const handleGatewayEvent = (server: ServerClosure): ServerInstance['gatew
   }
 
   if (event.requestContext.eventType === 'DISCONNECT') {
-    server.log('handleGatewayEvent DISCONNECT', { connectionId: event.requestContext.connectionId })
+    server.log('handleWebSocketEvent DISCONNECT', { connectionId: event.requestContext.connectionId })
     await disconnect({ server, event, message: null })
     return {
       statusCode: 200,
@@ -82,7 +83,7 @@ export const handleGatewayEvent = (server: ServerClosure): ServerInstance['gatew
     }
   }
 
-  server.log('handleGatewayEvent UNKNOWN', { connectionId: event.requestContext.connectionId })
+  server.log('handleWebSocketEvent UNKNOWN', { connectionId: event.requestContext.connectionId })
   return {
     statusCode: 200,
     body: '',

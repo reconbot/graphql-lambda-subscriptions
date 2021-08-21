@@ -1,15 +1,15 @@
 import { ServerArgs, ServerClosure, ServerInstance } from './types'
 import { publish } from './pubsub/publish'
 import { complete } from './pubsub/complete'
-import { handleGatewayEvent } from './handleGatewayEvent'
+import { handleWebSocketEvent } from './handleWebSocketEvent'
 import { handleStateMachineEvent } from './handleStateMachineEvent'
 import { makeServerClosure } from './makeServerClosure'
 
 export const createInstance = (opts: ServerArgs): ServerInstance => {
-  const closure: ServerClosure = makeServerClosure(opts)
+  const closure: Promise<ServerClosure> = makeServerClosure(opts)
 
   return {
-    gatewayHandler: handleGatewayEvent(closure),
+    webSocketHandler: handleWebSocketEvent(closure),
     stateMachineHandler: handleStateMachineEvent(closure),
     publish: publish(closure),
     complete: complete(closure),
@@ -17,6 +17,25 @@ export const createInstance = (opts: ServerArgs): ServerInstance => {
 }
 
 export * from './pubsub/subscribe'
-export * from './types'
+export {
+  ServerArgs,
+  ServerInstance,
+  APIGatewayWebSocketRequestContext,
+  SubscribeOptions,
+  SubscribeArgs,
+  SubscribePseudoIterable,
+  MaybePromise,
+  ApiGatewayManagementApiSubset,
+  TableNames,
+  APIGatewayWebSocketEvent,
+  LoggerFunction,
+  ApiSebSocketHandler,
+  WebSocketResponse,
+  StateFunctionInput,
+  PubSubEvent,
+  PartialBy,
+  SubscriptionDefinition,
+  SubscriptionFilter,
+} from './types'
 export { Subscription } from './model/Subscription'
 export { Connection } from './model/Connection'

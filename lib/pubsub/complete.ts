@@ -3,13 +3,14 @@ import { parse } from 'graphql'
 import { CompleteMessage, MessageType } from 'graphql-ws'
 import { buildExecutionContext } from 'graphql/execution/execute'
 import { ServerClosure, PubSubEvent, SubscribePseudoIterable, ServerInstance } from '../types'
-import { sendMessage } from '../utils/sendMessage'
+import { postToConnection } from '../utils/postToConnection'
 import { constructContext } from '../utils/constructContext'
 import { getResolverAndArgs } from '../utils/getResolverAndArgs'
 import { isArray } from '../utils/isArray'
 import { getFilteredSubs } from './getFilteredSubs'
 
-export const complete = (server: ServerClosure): ServerInstance['complete'] => async event => {
+export const complete = (serverPromise: Promise<ServerClosure>): ServerInstance['complete'] => async event => {
+  const server = await serverPromise
   const subscriptions = await getFilteredSubs({ server, event })
   server.log('pubsub:complete %j', { event, subscriptions })
 
@@ -18,7 +19,7 @@ export const complete = (server: ServerClosure): ServerInstance['complete'] => a
       id: sub.subscriptionId,
       type: MessageType.Complete,
     }
-    await sendMessage(server)({
+    await postToConnection(server)({
       ...sub.requestContext,
       message,
     })
@@ -28,7 +29,7 @@ export const complete = (server: ServerClosure): ServerInstance['complete'] => a
       server.schema,
       parse(sub.subscription.query),
       undefined,
-      await constructContext({ server, connectionParams: sub.connectionParams, connectionId: sub.connectionId }),
+      await constructContext({ server, connectionInitPayload: sub.connectionInitPayload, connectionId: sub.connectionId }),
       sub.subscription.variables,
       sub.subscription.operationName,
       undefined,

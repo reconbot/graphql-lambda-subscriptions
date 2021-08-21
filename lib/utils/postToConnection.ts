@@ -11,7 +11,7 @@ import { ServerClosure } from '../types'
 
 type GraphqlWSMessages = ConnectionAckMessage | NextMessage | CompleteMessage | ErrorMessage | PingMessage | PongMessage
 
-export const sendMessage = (server: ServerClosure) =>
+export const postToConnection = (server: ServerClosure) =>
   async ({
     connectionId: ConnectionId,
     domainName,

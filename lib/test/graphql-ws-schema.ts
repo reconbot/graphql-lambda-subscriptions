@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import ws from 'ws'
 import { useServer } from 'graphql-ws/lib/use/ws'
 import { makeExecutableSchema } from '@graphql-tools/schema'
@@ -51,7 +52,10 @@ const schema = makeExecutableSchema({
   resolvers,
 })
 
-export const startGqlWSServer = async () => {
+export const startGqlWSServer = async (): Promise<{
+  url: string
+  stop: () => Promise<void>
+}> => {
   const server = new ws.Server({
     port: PORT,
     path: '/',
