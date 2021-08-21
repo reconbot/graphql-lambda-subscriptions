@@ -8,9 +8,7 @@ import { deleteConnection } from '../utils/deleteConnection'
 export const connection_init: MessageHandler<ConnectionInitMessage> =
   async ({ server, event, message }) => {
     try {
-      const res = server.onConnectionInit
-        ? await server.onConnectionInit({ event, message })
-        : message.payload
+      const payload = await server.onConnectionInit?.({ event, message }) ?? message.payload ?? {}
 
       if (server.pingpong) {
         await new StepFunctions()
@@ -33,7 +31,7 @@ export const connection_init: MessageHandler<ConnectionInitMessage> =
       const connection = Object.assign(new server.model.Connection(), {
         id: event.requestContext.connectionId,
         requestContext: event.requestContext,
-        payload: res,
+        payload,
       })
       await server.mapper.put(connection)
       return sendMessage(server)({

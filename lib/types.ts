@@ -97,6 +97,12 @@ export type SubscribePseudoIterable<T extends PubSubEvent, TSubscribeArgs extend
 
 export interface SubscribeOptions<T extends PubSubEvent, TSubscribeArgs extends SubscribeArgs = SubscribeArgs> {
   filter?: SubscriptionFilter<TSubscribeArgs, T['payload']>
+  /**
+   * A function that gets the subscription information (like field args) it can throw if you don't want the subscription to subscribe.
+   * Gets resolver arguments to perform necessary work before a subscription is allowed (checking arguments, permissions, etc)
+   *
+   * If this callback errors the an error event is sent but the connection remains open.
+   */
   onSubscribe?: (...args: TSubscribeArgs) => MaybePromise<void>
   onComplete?: (...args: TSubscribeArgs) => MaybePromise<void>
   onAfterSubscribe?: (...args: TSubscribeArgs) => MaybePromise<void>

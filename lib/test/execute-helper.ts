@@ -1,58 +1,168 @@
-import { createClient } from 'graphql-ws'
 import WebSocket from 'ws'
 import { deferGenerator } from 'inside-out-async'
 
-const url = `ws://localhost:${process.env.PORT}`
+const URL = `ws://localhost:${process.env.PORT}`
 
-export const executeQuery = async (query: string): Promise<unknown> => {
-  const client = createClient({
-    url,
-    webSocketImpl: WebSocket,
+const messageToString = (message) => {
+  if (Buffer.isBuffer(message?.reason)) {
+    message.reason = message.reason.toString()
+  }
+  return JSON.stringify(message)
+}
+
+
+export const executeQuery = async function* (query: string, {
+  url = URL,
+  stayConnected = false,
+}: {
+  url?: string
+  stayConnected?: boolean
+} = {}): AsyncGenerator<unknown, void, unknown> {
+  let id = 1
+  const ws = new WebSocket(url, 'graphql-transport-ws')
+
+  const incomingMessages = deferGenerator()
+
+  ws.on('message', data => {
+    const message = JSON.parse(data.toString())
+    incomingMessages.queueValue(message)
+    if (message.type === 'error' || message.type === 'complete') {
+      incomingMessages.queueReturn()
+    }
   })
 
-  return new Promise((resolve, reject) => {
-    let result
-    client.subscribe(
-      { query },
-      {
-        next: ({ data }) => (result = data),
-        error: reject,
-        complete: () => resolve(result),
-      },
-    )
+  ws.on('error', error => {
+    incomingMessages.queueValue( { type: 'websocketError', value: error.message })
+    incomingMessages.queueReturn()
+  })
+  ws.on('close', (code, reason) => {
+    incomingMessages.queueValue({ type: 'close', code, reason: reason.toString() })
+    incomingMessages.queueReturn()
+  })
+
+  const send = (data: any) => new Promise<void>(resolve => ws.send(JSON.stringify(data), () => resolve()))
+
+  await new Promise(resolve => ws.on('open', resolve))
+  await send({ type: 'connection_init' })
+  const connectionAck: any = (await incomingMessages.generator.next()).value
+  if (connectionAck.type !== 'connection_ack') {
+    throw new Error(`Bad ack ${messageToString(connectionAck)}`)
+  }
+
+  await send({
+    id: `${id++}`,
+    type: 'subscribe',
+    payload: { query },
+  })
+
+  for await (const message of incomingMessages.generator) {
+    const shouldStop = yield message
+    if (shouldStop) {
+      break
+    }
+  }
+
+  if (!stayConnected){
+    ws.close()
+  }
+}
+
+
+export const executeToComplete = async function (query: string, {
+  url = URL,
+}: {
+  url?: string
+} = {}): Promise<() => Promise<void>> {
+  let id = 1
+  const ws = new WebSocket(url, 'graphql-transport-ws')
+
+  const incomingMessages = deferGenerator()
+
+  ws.on('message', data => {
+    const message = JSON.parse(data.toString())
+    incomingMessages.queueValue(message)
+    if (message.type === 'error' || message.type === 'complete') {
+      incomingMessages.queueReturn()
+    }
+  })
+
+  ws.on('error', error => {
+    incomingMessages.queueValue( { type: 'websocketError', value: error.message })
+    incomingMessages.queueReturn()
+  })
+  ws.on('close', (code, reason) => {
+    incomingMessages.queueValue({ type: 'close', code, reason: reason.toString() })
+    incomingMessages.queueReturn()
+  })
+
+  const send = (data: any) => new Promise<void>(resolve => ws.send(JSON.stringify(data), () => resolve()))
+
+  await new Promise(resolve => ws.on('open', resolve))
+  await send({ type: 'connection_init' })
+  const connectionAck: any = (await incomingMessages.generator.next()).value
+  if (connectionAck.type !== 'connection_ack') {
+    throw new Error(`Bad ack ${messageToString(connectionAck)}`)
+  }
+
+  const subId = id++
+
+  await send({
+    id: `${subId}`,
+    type: 'subscribe',
+    payload: { query },
+  })
+
+  return () => send({
+    id: `${subId}`,
+    type: 'complete',
   })
 }
 
-type SubscriptionResult = {
-  values: AsyncGenerator<unknown, unknown, unknown>
-  unsubscribe: () => void
-  close: () => Promise<void> | void
-}
 
-export const executeSubscription = (query: string, { lazy }: {lazy?: boolean} = {}): SubscriptionResult => {
-  const client = createClient({
-    url,
-    webSocketImpl: WebSocket,
-    lazy,
+
+export const executeToDisconnect = async function (query: string, {
+  url = URL,
+}: {
+  url?: string
+} = {}): Promise<() => void> {
+  let id = 1
+  const ws = new WebSocket(url, 'graphql-transport-ws')
+
+  const incomingMessages = deferGenerator()
+
+  ws.on('message', data => {
+    const message = JSON.parse(data.toString())
+    incomingMessages.queueValue(message)
+    if (message.type === 'error' || message.type === 'complete') {
+      incomingMessages.queueReturn()
+    }
   })
 
-  const values = deferGenerator()
+  ws.on('error', error => {
+    incomingMessages.queueValue( { type: 'websocketError', value: error.message })
+    incomingMessages.queueReturn()
+  })
+  ws.on('close', (code, reason) => {
+    incomingMessages.queueValue({ type: 'close', code, reason: reason.toString() })
+    incomingMessages.queueReturn()
+  })
 
-  const unsubscribe = client.subscribe(
-    { query },
-    {
-      next: ({ data }) => {
-        // console.log({ data })
-        values.queueValue(data)
-      },
-      error: (error: Error) => {
-        values.queueError(error)
-      },
-      complete: () => values.queueReturn(),
-    },
-  )
+  const send = (data: any) => new Promise<void>(resolve => ws.send(JSON.stringify(data), () => resolve()))
 
-  const close = () => client.dispose()
+  await new Promise(resolve => ws.on('open', resolve))
+  await send({ type: 'connection_init' })
+  const connectionAck: any = (await incomingMessages.generator.next()).value
+  if (connectionAck.type !== 'connection_ack') {
+    throw new Error(`Bad ack ${messageToString(connectionAck)}`)
+  }
 
-  return { values: values.generator, unsubscribe, close }
+  const subId = id++
+
+  await send({
+    id: `${subId}`,
+    type: 'subscribe',
+    payload: { query },
+  })
+
+  return () => ws.close()
 }
