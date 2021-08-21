@@ -1,5 +1,5 @@
 import { PingMessage, MessageType } from 'graphql-ws'
-import { sendMessage } from '../utils/sendMessage'
+import { postToConnection } from '../utils/postToConnection'
 import { deleteConnection } from '../utils/deleteConnection'
 import { MessageHandler } from '../types'
 
@@ -7,7 +7,7 @@ import { MessageHandler } from '../types'
 export const ping: MessageHandler<PingMessage> = async ({ server, event, message }) => {
   try {
     await server.onPing?.({ event, message })
-    return sendMessage(server)({
+    return postToConnection(server)({
       ...event.requestContext,
       message: { type: MessageType.Pong },
     })

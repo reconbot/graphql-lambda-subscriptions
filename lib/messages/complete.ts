@@ -26,7 +26,7 @@ export const complete: MessageHandler<CompleteMessage> =
         server.schema,
         parse(sub.subscription.query),
         undefined,
-        await constructContext({ server, connectionParams: sub.connectionParams, connectionId: sub.connectionId }),
+        await constructContext({ server, connectionInitPayload: sub.connectionInitPayload, connectionId: sub.connectionId }),
         sub.subscription.variables,
         sub.subscription.operationName,
         undefined,

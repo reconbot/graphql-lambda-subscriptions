@@ -1,4 +1,5 @@
 # Graphql Lambda Subscriptions
+
 [![Release](https://github.com/reconbot/graphql-lambda-subscriptions/actions/workflows/test.yml/badge.svg)](https://github.com/reconbot/graphql-lambda-subscriptions/actions/workflows/test.yml)
 
 This is a fork of [`subscriptionless`](https://github.com/andyrichardson/subscriptionless) and is a Amazon Lambda Serverless equivalent to [graphQL-ws](https://github.com/enisdenjo/graphql-ws). It follows the [`graphql-ws prototcol`](https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md). It is tested with the [Architect Sandbox](https://arc.codes/docs/en/reference/cli/sandbox) against `graphql-ws` directly and run in production today. For many applications `graphql-lambda-subscriptions` should do what `graphql-ws` does for you today without having to run a server.
@@ -17,6 +18,7 @@ I had different requirements and needed more features. This project wouldn't exi
 - Provides a Pub/Sub system to broadcast events to subscriptions
 - Provides hooks for the full lifecycle of a subscription
 - Type compatible with GraphQL and [`nexus.js`](https://nexusjs.org)
+- Optional Logging
 
 ## Quick Start
 
@@ -203,7 +205,7 @@ resources:
 
 ```tf
 resource "aws_dynamodb_table" "connections-table" {
-  name           = "subscriptionless_connections"
+  name           = "graphql_connections"
   billing_mode   = "PROVISIONED"
   read_capacity  = 1
   write_capacity = 1
@@ -216,7 +218,7 @@ resource "aws_dynamodb_table" "connections-table" {
 }
 
 resource "aws_dynamodb_table" "subscriptions-table" {
-  name           = "subscriptionless_subscriptions"
+  name           = "graphql_subscriptions"
   billing_mode   = "PROVISIONED"
   read_capacity  = 1
   write_capacity = 1
@@ -370,7 +372,7 @@ Context values are accessible in all resolver level functions (`resolve`, `subsc
 
 <summary>📖 Default value</summary>
 
-Assuming no `context` argument is provided, the default value is an object containing a `connectionParams` attribute.
+Assuming no `context` argument is provided, the default value is an object containing a `connectionInitPayload` attribute.
 
 This attribute contains the [(optionally parsed)](#events) payload from `connection_init`.
 
@@ -379,7 +381,7 @@ export const resolver = {
   Subscribe: {
     mySubscription: {
       resolve: (event, args, context) => {
-        console.log(context.connectionParams); // payload from connection_init
+        console.log(context.connectionInitPayload); // payload from connection_init
       },
     },
   },
@@ -418,9 +420,9 @@ The default context value is passed as an argument.
 ```ts
 const instance = createInstance({
   /* ... */
-  context: ({ connectionParams }) => ({
+  context: ({ connectionInitPayload }) => ({
     myAttr: 'hello',
-    user: connectionParams.user,
+    user: connectionInitPayload.user,
   }),
 });
 ```

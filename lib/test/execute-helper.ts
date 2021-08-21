@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import WebSocket from 'ws'
 import { deferGenerator } from 'inside-out-async'
 

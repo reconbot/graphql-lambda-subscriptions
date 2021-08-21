@@ -3,22 +3,30 @@ import { ServerArgs, ServerClosure } from './types'
 import { createModel } from './model/createModel'
 import { Subscription } from './model/Subscription'
 import { Connection } from './model/Connection'
-import { log } from './utils/logger'
+import { log as debugLogger } from './utils/logger'
 
-export function makeServerClosure(opts: ServerArgs): ServerClosure {
+export const makeServerClosure = async (opts: ServerArgs): Promise<ServerClosure> => {
+  const {
+    tableNames,
+    log = debugLogger,
+    dynamodb,
+    apiGatewayManagementApi,
+    ...rest
+  } = opts
   return {
-    log: log,
-    ...opts,
+    ...rest,
+    apiGatewayManagementApi: await apiGatewayManagementApi,
+    log,
     model: {
       Subscription: createModel({
         model: Subscription,
-        table: opts.tableNames?.subscriptions || 'subscriptionless_subscriptions',
+        table: (await tableNames)?.subscriptions || 'graphql_subscriptions',
       }),
       Connection: createModel({
         model: Connection,
-        table: opts.tableNames?.connections || 'subscriptionless_connections',
+        table: (await tableNames)?.connections || 'graphql_connections',
       }),
     },
-    mapper: new DataMapper({ client: opts.dynamodb }),
+    mapper: new DataMapper({ client: await dynamodb }),
   }
 }

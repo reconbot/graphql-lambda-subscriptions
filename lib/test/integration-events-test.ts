@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { assert, use } from 'chai'
 import { start as sandBoxStart, end as sandBoxStop } from '@architect/sandbox'
 import { collect, map } from 'streaming-iterables'

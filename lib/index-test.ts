@@ -3,10 +3,10 @@ import { Handler } from 'aws-lambda'
 import { tables } from '@architect/sandbox'
 import { createInstance } from '.'
 import { mockServerArgs } from './test/mockServer'
-import { APIGatewayWebSocketEvent, WebsocketResponse } from './types'
+import { APIGatewayWebSocketEvent, WebSocketResponse } from './types'
 
 describe('createInstance', () => {
-  describe('gatewayHandler', () => {
+  describe('webSocketHandler', () => {
     before(async () => {
       await tables.start({ cwd: './mocks/arc-basic-events', quiet: true })
     })
@@ -18,8 +18,8 @@ describe('createInstance', () => {
     it('is type compatible with aws-lambda handler', async () => {
       const server = createInstance(await mockServerArgs())
 
-      const gatewayHandler: Handler<APIGatewayWebSocketEvent, WebsocketResponse> = server.gatewayHandler
-      assert.ok(gatewayHandler)
+      const webSocketHandler: Handler<APIGatewayWebSocketEvent, WebSocketResponse> = server.webSocketHandler
+      assert.ok(webSocketHandler)
     })
   })
 })

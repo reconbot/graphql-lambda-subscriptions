@@ -1,7 +1,7 @@
 import { StepFunctions } from 'aws-sdk'
 import { ConnectionInitMessage, MessageType } from 'graphql-ws'
 import { StateFunctionInput, MessageHandler } from '../types'
-import { sendMessage } from '../utils/sendMessage'
+import { postToConnection } from '../utils/postToConnection'
 import { deleteConnection } from '../utils/deleteConnection'
 
 /** Handler function for 'connection_init' message. */
@@ -34,7 +34,7 @@ export const connection_init: MessageHandler<ConnectionInitMessage> =
         payload,
       })
       await server.mapper.put(connection)
-      return sendMessage(server)({
+      return postToConnection(server)({
         ...event.requestContext,
         message: { type: MessageType.ConnectionAck },
       })

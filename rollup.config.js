@@ -3,7 +3,9 @@ import resolve from 'rollup-plugin-node-resolve'
 export default {
   input: './dist-ts/index.js',
   plugins: [
-    resolve({}),
+    resolve({
+      preferBuiltins: true,
+    }),
   ],
   output: [
     { format: 'esm', file: './dist/index-esm.mjs' },

@@ -8,7 +8,7 @@ import {
 import { APIGatewayWebSocketEvent, ServerClosure, MessageHandler, SubscribePseudoIterable, PubSubEvent } from '../types'
 import { constructContext } from '../utils/constructContext'
 import { getResolverAndArgs } from '../utils/getResolverAndArgs'
-import { sendMessage } from '../utils/sendMessage'
+import { postToConnection } from '../utils/postToConnection'
 import { deleteConnection } from '../utils/deleteConnection'
 import { isArray } from '../utils/isArray'
 
@@ -38,7 +38,7 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
 
   if (errors) {
     server.log('subscribe:validateError', errors)
-    return sendMessage(server)({
+    return postToConnection(server)({
       ...event.requestContext,
       message: {
         type: MessageType.Error,
@@ -48,7 +48,7 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
     })
   }
 
-  const contextValue = await constructContext({ server, connectionParams: connection.payload, connectionId })
+  const contextValue = await constructContext({ server, connectionInitPayload: connection.payload, connectionId })
 
   const execContext = buildExecutionContext(
     server.schema,
@@ -61,7 +61,7 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
   )
 
   if (isArray(execContext)) {
-    return sendMessage(server)({
+    return postToConnection(server)({
       ...event.requestContext,
       message: {
         type: MessageType.Error,
@@ -87,7 +87,7 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
   const onSubscribeErrors = await onSubscribe?.(root, args, context, info)
   if (onSubscribeErrors){
     server.log('onSubscribe', { onSubscribeErrors })
-    return sendMessage(server)({
+    return postToConnection(server)({
       ...event.requestContext,
       message: {
         type: MessageType.Error,
@@ -110,7 +110,7 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
         ...message.payload,
       },
       connectionId: connection.id,
-      connectionParams: connection.payload,
+      connectionInitPayload: connection.payload,
       requestContext: event.requestContext,
       ttl: connection.ttl,
     })
@@ -155,7 +155,7 @@ async function executeQuery(server: ServerClosure, message: SubscribeMessage, co
     undefined,
   )
 
-  await sendMessage(server)({
+  await postToConnection(server)({
     ...event.requestContext,
     message: {
       type: MessageType.Next,
@@ -164,7 +164,7 @@ async function executeQuery(server: ServerClosure, message: SubscribeMessage, co
     },
   })
 
-  await sendMessage(server)({
+  await postToConnection(server)({
     ...event.requestContext,
     message: {
       type: MessageType.Complete,

@@ -41,7 +41,7 @@ export class Subscription {
 
   /** Redundant copy of connection_init payload */
   @attribute()
-  connectionParams: object
+  connectionInitPayload: object
 
   @attribute()
   requestContext: APIGatewayWebSocketRequestContext
