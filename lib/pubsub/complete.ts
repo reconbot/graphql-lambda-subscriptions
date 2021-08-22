@@ -2,14 +2,14 @@ import AggregateError from 'aggregate-error'
 import { parse } from 'graphql'
 import { CompleteMessage, MessageType } from 'graphql-ws'
 import { buildExecutionContext } from 'graphql/execution/execute'
-import { ServerClosure, PubSubEvent, SubscribePseudoIterable, ServerInstance } from '../types'
+import { ServerClosure, PubSubEvent, SubscribePseudoIterable, SubscriptionServer } from '../types'
 import { postToConnection } from '../utils/postToConnection'
 import { constructContext } from '../utils/constructContext'
 import { getResolverAndArgs } from '../utils/getResolverAndArgs'
 import { isArray } from '../utils/isArray'
 import { getFilteredSubs } from './getFilteredSubs'
 
-export const complete = (serverPromise: Promise<ServerClosure>): ServerInstance['complete'] => async event => {
+export const complete = (serverPromise: Promise<ServerClosure>): SubscriptionServer['complete'] => async event => {
   const server = await serverPromise
   const subscriptions = await getFilteredSubs({ server, event })
   server.log('pubsub:complete %j', { event, subscriptions })

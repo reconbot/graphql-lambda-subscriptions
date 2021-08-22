@@ -1,5 +1,5 @@
 import { GRAPHQL_TRANSPORT_WS_PROTOCOL, MessageType } from 'graphql-ws'
-import { ServerClosure, ServerInstance } from './types'
+import { ServerClosure, SubscriptionServer } from './types'
 import { disconnect } from './messages/disconnect'
 import { ping } from './messages/ping'
 import { complete } from './messages/complete'
@@ -7,7 +7,7 @@ import { subscribe } from './messages/subscribe'
 import { connection_init } from './messages/connection_init'
 import { pong } from './messages/pong'
 
-export const handleWebSocketEvent = (serverPromise: Promise<ServerClosure>): ServerInstance['webSocketHandler'] => async (event) => {
+export const handleWebSocketEvent = (serverPromise: Promise<ServerClosure>): SubscriptionServer['webSocketHandler'] => async (event) => {
   const server = await serverPromise
   if (!event.requestContext) {
     server.log('handleWebSocketEvent unknown')

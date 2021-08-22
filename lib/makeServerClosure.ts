@@ -11,11 +11,13 @@ export const makeServerClosure = async (opts: ServerArgs): Promise<ServerClosure
     log = debugLogger,
     dynamodb,
     apiGatewayManagementApi,
+    pingpong,
     ...rest
   } = opts
   return {
     ...rest,
     apiGatewayManagementApi: await apiGatewayManagementApi,
+    pingpong: await pingpong,
     log,
     model: {
       Subscription: createModel({

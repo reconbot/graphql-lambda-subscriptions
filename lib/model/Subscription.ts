@@ -10,6 +10,7 @@ import { addHours } from '../utils/date'
 
 /**
  * Active subscriptions
+ * @internal
  */
 export class Subscription {
   /*

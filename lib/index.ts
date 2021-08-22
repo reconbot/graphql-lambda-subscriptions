@@ -1,39 +1,37 @@
-import { ServerArgs, ServerClosure, ServerInstance } from './types'
+import { ServerArgs, ServerClosure, SubscriptionServer } from './types'
 import { publish } from './pubsub/publish'
 import { complete } from './pubsub/complete'
 import { handleWebSocketEvent } from './handleWebSocketEvent'
-import { handleStateMachineEvent } from './handleStateMachineEvent'
+import { handleStepFunctionEvent } from './handleStepFunctionEvent'
 import { makeServerClosure } from './makeServerClosure'
 
-export const createInstance = (opts: ServerArgs): ServerInstance => {
+export const makeServer = (opts: ServerArgs): SubscriptionServer => {
   const closure: Promise<ServerClosure> = makeServerClosure(opts)
 
   return {
     webSocketHandler: handleWebSocketEvent(closure),
-    stateMachineHandler: handleStateMachineEvent(closure),
+    stepFunctionsHandler: handleStepFunctionEvent(closure),
     publish: publish(closure),
     complete: complete(closure),
   }
 }
 
-export * from './pubsub/subscribe'
+export { subscribe } from './pubsub/subscribe'
+
 export {
   ServerArgs,
-  ServerInstance,
+  SubscriptionServer,
   APIGatewayWebSocketRequestContext,
   SubscribeOptions,
   SubscribeArgs,
   SubscribePseudoIterable,
   MaybePromise,
   ApiGatewayManagementApiSubset,
-  TableNames,
   APIGatewayWebSocketEvent,
   LoggerFunction,
-  ApiSebSocketHandler,
   WebSocketResponse,
   StateFunctionInput,
   PubSubEvent,
-  PartialBy,
   SubscriptionDefinition,
   SubscriptionFilter,
 } from './types'
