@@ -1,11 +1,11 @@
 import { parse, execute } from 'graphql'
 import { MessageType, NextMessage } from 'graphql-ws'
-import { ServerClosure, ServerInstance } from '../types'
+import { ServerClosure, SubscriptionServer } from '../types'
 import { postToConnection } from '../utils/postToConnection'
 import { constructContext } from '../utils/constructContext'
 import { getFilteredSubs } from './getFilteredSubs'
 
-export const publish = (serverPromise: Promise<ServerClosure>): ServerInstance['publish'] => async event => {
+export const publish = (serverPromise: Promise<ServerClosure>): SubscriptionServer['publish'] => async event => {
   const server = await serverPromise
   server.log('pubsub:publish %j', { event })
   const subscriptions = await getFilteredSubs({ server, event })

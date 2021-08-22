@@ -4,6 +4,7 @@ import { addHours } from '../utils/date'
 
 /**
  * Connection established with `connection_init`
+ * @internal
  */
 export class Connection {
   /* ConnectionID */

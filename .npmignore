@@ -12,3 +12,7 @@ rollup.config.js
 tsconfig-build.json
 tsconfig.json
 tests
+typedoc.js
+mocks
+docs
+SECURITY.md

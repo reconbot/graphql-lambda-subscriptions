@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { makeExecutableSchema } = require('@graphql-tools/schema')
 const { tables: arcTables } = require('@architect/functions')
-const { createInstance, subscribe } = require('../../../dist')
+const { makeServer, subscribe } = require('../../../dist')
 const { ApiGatewayManagementApi } = require('aws-sdk')
 const { GraphQLError } = require('graphql')
 
@@ -147,38 +147,6 @@ const schema = makeExecutableSchema({
   resolvers,
 })
 
-const buildSubscriptionServer = async () => {
-  const tables = await arcTables()
-
-  const ensureName = (table) => {
-    const actualTableName = tables.name(table)
-    if (!actualTableName) {
-      throw new Error(`No table found for ${table}`)
-    }
-    return actualTableName
-  }
-
-  const server = createInstance({
-    dynamodb: arcTables.db,
-    schema,
-    context: () => {
-      return {
-        publish: server.publish,
-        complete: server.complete,
-      }
-    },
-    tableNames: {
-      connections: ensureName('Connection'),
-      subscriptions: ensureName('Subscription'),
-    },
-    apiGatewayManagementApi: makeManagementAPI(),
-    onError: err => {
-      console.log('onError', err.message)
-    },
-  })
-  return server
-}
-
 const fetchTableNames = async () => {
   const tables = await arcTables()
 
@@ -194,10 +162,9 @@ const fetchTableNames = async () => {
     connections: ensureName('Connection'),
     subscriptions: ensureName('Subscription'),
   }
-
 }
 
-const subscriptionServer = createInstance({
+const subscriptionServer = makeServer({
   dynamodb: arcTables.db,
   schema,
   context: () => {
@@ -213,4 +180,4 @@ const subscriptionServer = createInstance({
   },
 })
 
-module.exports = { subscriptionServer, buildSubscriptionServer }
+module.exports = { subscriptionServer }

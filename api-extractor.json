@@ -312,8 +312,11 @@
         // "addToApiReportFile": false
       },
       "ae-missing-release-tag": {
-        "logLevel": "none"
-      }
+        "logLevel": "none",
+      },
+      "ae-internal-missing-underscore": {
+        "logLevel": "none",
+      },
 
       // "ae-extra-release-tag": {
       //   "logLevel": "warning",
@@ -335,6 +338,16 @@
         "logLevel": "warning",
         // "addToApiReportFile": false
       },
+      "tsdoc-escape-right-brace": {
+        "logLevel": "none",
+      },
+      "tsdoc-malformed-inline-tag": {
+        "logLevel": "none",
+      },
+      "tsdoc-at-sign-in-word": {
+        "logLevel": "none",
+      },
+
       // "tsdoc-link-tag-unescaped-text": {
       //   "logLevel": "warning",
       //   "addToApiReportFile": true

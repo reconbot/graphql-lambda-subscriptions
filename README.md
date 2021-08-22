@@ -2,7 +2,7 @@
 
 [![Release](https://github.com/reconbot/graphql-lambda-subscriptions/actions/workflows/test.yml/badge.svg)](https://github.com/reconbot/graphql-lambda-subscriptions/actions/workflows/test.yml)
 
-This is a fork of [`subscriptionless`](https://github.com/andyrichardson/subscriptionless) and is a Amazon Lambda Serverless equivalent to [graphQL-ws](https://github.com/enisdenjo/graphql-ws). It follows the [`graphql-ws prototcol`](https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md). It is tested with the [Architect Sandbox](https://arc.codes/docs/en/reference/cli/sandbox) against `graphql-ws` directly and run in production today. For many applications `graphql-lambda-subscriptions` should do what `graphql-ws` does for you today without having to run a server.
+This is a fork of [`subscriptionless`](https://github.com/andyrichardson/subscriptionless) and is a Amazon Lambda Serverless equivalent to [graphql-ws](https://github.com/enisdenjo/graphql-ws). It follows the [`graphql-ws prototcol`](https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md). It is tested with the [Architect Sandbox](https://arc.codes/docs/en/reference/cli/sandbox) against `graphql-ws` directly and run in production today. For many applications `graphql-lambda-subscriptions` should do what `graphql-ws` does for you today without having to run a server.
 
 As `subscriptionless`'s tagline goes;
 
@@ -22,80 +22,53 @@ I had different requirements and needed more features. This project wouldn't exi
 
 ## Quick Start
 
-Since there are many ways to deploy to amazon lambda I'm going to have to get opinionated in the quickstart and pick [Architect](https://arc.codes). `graphql-lambda-subscriptions` should work on Lambda regardless of your deployment and packaging framework. Take a look at the [arc-basic-events](mocks/arc-basic-events) mock used for integration testing for an example of using it with Architect.
+Since there are many ways to deploy to amazon lambda I'm going to have to get opinionated in the quick start and pick [Architect](https://arc.codes). `graphql-lambda-subscriptions` should work on Lambda regardless of your deployment and packaging framework. Take a look at the [arc-basic-events](mocks/arc-basic-events) mock used for integration testing for an example of using it with Architect.
 
-More to come...
+## API Docs
 
-## API
-
-This should be generated...
-
-### `subscribe(topic: string, options?: SubscribeOptions): SubscribePseudoIterable`
-
-Subscribe is the most important method in the library. It's the primary difference between `graphql-ws` and `graphql-lambda-subscriptions`. It returns a `SubscribePseudoIterable` that pretends to be an async iterator that you put on the `subscribe` resolver for your Subscription. In reality it includes a few properties that we use to subscribe to events and fire lifecycle functions.
-
-```ts
-interface SubscribeOptions {
-    filter?: (...args: TSubscribeArgs) => MaybePromise<Partial<Payload>|void>;
-    onSubscribe?: (...args: TSubscribeArgs) => MaybePromise<void>;
-    onAfterSubscribe?: (...args: TSubscribeArgs) => MaybePromise<void>;
-    onComplete?: (...args: TSubscribeArgs) => MaybePromise<void>;
-}
-```
-
-- `topic`: The you subscribe to the topic and can filter based upon the topics payload.
-- `filter`: An object that the payload will be matched against (or a function that produces the object). If the payload's field matches the subscription will receive the event. If the payload is missing the field the subscription will receive the event.
-- `onSubscribe`: A function that gets the subscription information (like arguments) it can return an array of errors if you don't want the subscription to subscribe.
-- `onAfterSubscribe`: A function that gets the subscription information (like arguments) and can fire initial events or record information.
-- `onComplete`: A function that fires at least once when a connection disconnects, a client sends a "complete" message, or the server sends a "complete" message. Because of the nature of aws lambda, it's possible for a client to send a "complete" message and disconnect and those events executing on lambda out of order. Which why this function can be called up to twice.
-
-## Old Readme
-
-#### Ping/Pong
-
-For whatever reason, AWS API Gateway does not support WebSocket protocol level ping/pong.
-
-This means early detection of unclean client disconnects is near impossible [(graphql-ws will not implement subprotocol level ping/pong)](https://github.com/enisdenjo/graphql-ws/issues/117).
-
-#### Socket idleness
-
-API Gateway considers an idle connection to be one where no messages have been sent on the socket for a fixed duration [(currently 10 minutes)](https://docs.aws.amazon.com/apigateway/latest/developerguide/limits.html#apigateway-execution-service-websocket-limits-table).
-
-Again, the WebSocket spec has support for detecting idle connections (ping/pong) but API Gateway doesn't use it. This means, in the case where both parties are connected, and no message is sent on the socket for the defined duration (direction agnostic), API Gateway will close the socket.
-
-A quick fix for this is to set up immediate reconnection on the client side.
-
-#### Socket errors
-
-API Gateway's current socket closing functionality doesn't support any kind of message/payload. Along with this, [graphql-ws won't support error messages](https://github.com/enisdenjo/graphql-ws/issues/112).
-
-Because of this limitation, there is no clear way to communicate subprotocol errors to the client. In the case of a subprotocol error the socket will be closed by the server (with no meaningful disconnect payload).
-
+Can be found in our [docs folder](docs/README.md). You'll want to start with [`makeServer()`](docs/README.md#makeserver) and [`subscribe()`](dosc/README.md#subscribe).
 
 ## Setup
 
-#### Create a subscriptionless instance.
+### Create a graphql-lambda-subscriptions server
 
 ```ts
-import { createInstance } from 'subscriptionless';
+import { makeServer } from 'graphql-lambda-subscriptions'
 
-const instance = createInstance({
+// define a schema and create a configured DynamoDB instance from aws-sdk
+// and make a schema with resolvers (maybe look at) '@graphql-tools/schema
+
+const subscriptionServer = makeServer({
   dynamodb,
   schema,
-});
+})
 ```
 
-#### Export the handler.
+### Export the handler
 
 ```ts
-export const handler = instance.handler;
+export const handler = subscriptionServer.webSocketHandler;
 ```
 
-#### Configure API Gateway
+### Configure API Gateway
 
 Set up API Gateway to route WebSocket events to the exported handler.
 
-_Serverless framework example._
+
+<details>
+<summary>📖  Architect Example</summary>
+
+```arc
+@app
+basic-events
+
+@ws
+```
+
+</details>
+
+<details>
+<summary>📖  Serverless Framework Example</summary>
 
 ```yaml
 functions:
@@ -113,31 +86,96 @@ functions:
 
 </details>
 
-#### Create DynanmoDB tables for state
+### Create DynanmoDB tables for state
 
 In-flight connections and subscriptions need to be persisted.
 
-<details>
 
-<summary>📖  Changing DynamoDB table names</summary>
+#### Changing DynamoDB table names
 
 Use the `tableNames` argument to override the default table names.
 
 ```ts
-const instance = createInstance({
+const instance = makeServer({
   /* ... */
   tableNames: {
     connections: 'my_connections',
     subscriptions: 'my_subscriptions',
   },
-});
+})
+
+// or use an async function to retrieve the names
+
+const fetchTableNames = async () => {
+  // do some work to get your table names
+  return {
+    connections,
+    subscriptions,
+  }
+}
+const instance = makeServer({
+  /* ... */
+  tableNames: fetchTableNames(),
+})
+
+```
+
+<details>
+
+<summary>💾 Architect Example</summary>
+
+```arc
+@tables
+Connection
+  id *String
+  ttl TTL
+Subscription
+  id *String
+  topic **String
+  ttl TTL
+
+@indexes
+
+Subscription
+  connectionId *String
+  name ConnectionIndex
+
+Subscription
+  topic *String
+  name TopicIndex
+```
+
+```ts
+import { tables } from '@architect/functions'
+
+const fetchTableNames = async () => {
+  const tables = await tables()
+
+  const ensureName = (table) => {
+    const actualTableName = tables.name(table)
+    if (!actualTableName) {
+      throw new Error(`No table found for ${table}`)
+    }
+    return actualTableName
+  }
+
+  return {
+    connections: ensureName('Connection'),
+    subscriptions: ensureName('Subscription'),
+  }
+}
+
+const subscriptionServer = makeServer({
+  dynamodb: tables.db,
+  schema,
+  tableNames: fetchTableNames(),
+})
 ```
 
 </details>
 
 <details>
-
-<summary>💾 serverless framework example</summary>
+<summary>💾 Serverless Framework Example</summary>
 
 ```yaml
 resources:
@@ -196,11 +234,9 @@ resources:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
 ```
-
 </details>
 
 <details>
-
 <summary>💾 terraform example</summary>
 
 ```tf
@@ -260,87 +296,69 @@ resource "aws_dynamodb_table" "subscriptions-table" {
 
 </details>
 
-## Usage
-
 ### PubSub
 
-`subscriptionless` uses it's own _PubSub_ implementation which loosely implements the [Apollo PubSub Interface](https://github.com/apollographql/graphql-subscriptions#pubsub-implementations).
+`graphql-lambda-subscriptions` uses it's own _PubSub_ implementation.
 
-> Note: Unlike the Apollo `PubSub` library, this implementation is (mostly) stateless
+#### Subscribing to Topics
 
-<details>
-
-<summary>📖 Subscribing to topics</summary>
-
-Use the `subscribe` function to associate incoming subscriptions with a topic.
+Use the [`subscribe`](docs/README.md#subscribe) function to associate incoming subscriptions with a topic.
 
 ```ts
-import { subscribe } from 'subscriptionless/subscribe';
+import { subscribe } from 'graphql-lambda-subscriptions';
 
 export const resolver = {
   Subscribe: {
     mySubscription: {
-      resolve: (event, args, context) => {/* ... */}
       subscribe: subscribe('MY_TOPIC'),
+      resolve: (event, args, context) => {/* ... */}
     }
   }
 }
 ```
 
-</details>
-
 <details>
 
 <summary>📖 Filtering events</summary>
 
-Wrap any `subscribe` function call in a `withFilter` to provide filter conditions.
+Use the [`subscribe`](docs/README.md#subscribe) with [`SubscribeOptions`](docs/interfaces/SubscribeOptions.md) to allow for filtering.
 
 > Note: If a function is provided, it will be called **on subscription start** and must return a serializable object.
 
 ```ts
-import { subscribe } from 'subscriptionless/subscribe';
+import { subscribe } from 'graphql-lambda-subscriptions';
 
 // Subscription agnostic filter
-withFilter(subscribe('MY_TOPIC'), {
-  attr1: '`attr1` must have this value',
-  attr2: {
-    attr3: 'Nested attributes work fine',
-  },
-});
+subscribe('MY_TOPIC', {
+  filter: {
+    attr1: '`attr1` must have this value',
+    attr2: {
+      attr3: 'Nested attributes work fine',
+    },
+  }
+})
 
 // Subscription specific filter
-withFilter(subscribe('MY_TOPIC'), (root, args, context, info) => ({
-  userId: args.userId,
-}));
+subscribe('MY_TOPIC',{
+  filter: (root, args, context, info) => ({
+    userId: args.userId,
+  }),
+})
 ```
 
 </details>
 
-<details>
+#### Publishing events
 
-<summary>📖 Concatenating topic subscriptions</summary>
-
-Join multiple topic subscriptions together using `concat`.
+Use the `publish` on your graphql-lambda-subscriptions server to publish events to active subscriptions. Payloads must be of type `Record<string, any>` so they can be filtered and stored.
 
 ```tsx
-import { concat, subscribe } from 'subscriptionless/subscribe';
-
-concat(subscribe('TOPIC_1'), subscribe('TOPIC_2'));
-```
-
-</details>
-
-<details>
-
-<summary>📖 Publishing events</summary>
-
-Use the `publish` on your subscriptionless instance to publish events to active subscriptions.
-
-```tsx
-instance.publish({
+subscriptionServer.publish({
   type: 'MY_TOPIC',
-  payload: 'HELLO',
-});
+  payload: {
+    message: 'Hey!',
+  },
+})
 ```
 
 Events can come from many sources
@@ -350,7 +368,7 @@ Events can come from many sources
 export const snsHandler = (event) =>
   Promise.all(
     event.Records.map((r) =>
-      instance.publish({
+      subscriptionServer.publish({
         topic: r.Sns.TopicArn.substring(r.Sns.TopicArn.lastIndexOf(':') + 1), // Get topic name (e.g. "MY_TOPIC")
         payload: JSON.parse(r.Sns.Message),
       })
@@ -358,15 +376,26 @@ export const snsHandler = (event) =>
   );
 
 // Manual Invocation
-export const invocationHandler = (payload) =>
-  instance.publish({ topic: 'MY_TOPIC', payload });
+export const invocationHandler = (payload) => subscriptionServer.publish({ topic: 'MY_TOPIC', payload });
 ```
 
-</details>
+#### Completing Subscriptions
+
+Use the `complete` on your graphql-lambda-subscriptions server to complete active subscriptions. Payloads are optional and match against filters like events do.
+
+```tsx
+subscriptionServer.complete({
+  type: 'MY_TOPIC',
+  // optional payload
+  payload: {
+    message: 'Hey!',
+  },
+})
+```
 
 ### Context
 
-Context values are accessible in all resolver level functions (`resolve`, `subscribe`, `onSubscribe` and `onComplete`).
+Context values are accessible in all callback and resolver functions (`resolve`, `filter`, `onAfterSubscribe`, `onSubscribe` and `onComplete`).
 
 <details>
 
@@ -394,10 +423,10 @@ export const resolver = {
 
 <summary>📖 Setting static context value</summary>
 
-An object can be provided via the `context` attribute when calling `createInstance`.
+An object can be provided via the `context` attribute when calling `makeServer`.
 
 ```ts
-const instance = createInstance({
+const instance = makeServer({
   /* ... */
   context: {
     myAttr: 'hello',
@@ -413,12 +442,12 @@ The default values (above) will be appended to this object prior to execution.
 
 <summary>📖 Setting dynamic context value</summary>
 
-A function (optionally async) can be provided via the `context` attribute when calling `createInstance`.
+A function (optionally async) can be provided via the `context` attribute when calling `makeServer`.
 
 The default context value is passed as an argument.
 
 ```ts
-const instance = createInstance({
+const instance = makeServer({
   /* ... */
   context: ({ connectionInitPayload }) => ({
     myAttr: 'hello',
@@ -459,7 +488,7 @@ export const resolver = {
 
 ### Events
 
-Global events can be provided when calling `createInstance` to track the execution cycle of the lambda.
+Global events can be provided when calling `makeServer` to track the execution cycle of the lambda.
 
 <details>
 
@@ -468,7 +497,7 @@ Global events can be provided when calling `createInstance` to track the executi
 Called when a WebSocket connection is first established.
 
 ```ts
-const instance = createInstance({
+const instance = makeServer({
   /* ... */
   onConnect: ({ event }) => {
     /* */
@@ -485,7 +514,7 @@ const instance = createInstance({
 Called when a WebSocket connection is disconnected.
 
 ```ts
-const instance = createInstance({
+const instance = makeServer({
   /* ... */
   onDisconnect: ({ event }) => {
     /* */
@@ -504,7 +533,7 @@ const instance = createInstance({
 > **Note:** Any sensitive data in the incoming message should be removed at this stage.
 
 ```ts
-const instance = createInstance({
+const instance = makeServer({
   /* ... */
   onConnectionInit: ({ message }) => {
     const token = message.payload.token;
@@ -535,7 +564,7 @@ By default, the (optionally parsed) payload will be accessible via [context](#co
 Called when any subscription message is received.
 
 ```ts
-const instance = createInstance({
+const instance = makeServer({
   /* ... */
   onSubscribe: ({ event, message }) => {
     /* */
@@ -552,7 +581,7 @@ const instance = createInstance({
 Called when any complete message is received.
 
 ```ts
-const instance = createInstance({
+const instance = makeServer({
   /* ... */
   onComplete: ({ event, message }) => {
     /* */
@@ -569,7 +598,7 @@ const instance = createInstance({
 Called when any error is encountered
 
 ```ts
-const instance = createInstance({
+const instance = makeServer({
   /* ... */
   onError: (error, context) => {
     /* */
@@ -578,3 +607,14 @@ const instance = createInstance({
 ```
 
 </details>
+
+
+## Caveats
+
+### Ping/Pong
+
+For whatever reason, AWS API Gateway does not support WebSocket protocol level ping/pong. This means early detection of unclean client disconnects a lot of extra work as [(graphql-ws doesn't provide subprotocol level ping/pong)](https://github.com/enisdenjo/graphql-ws/issues/117). So you can use Step Functions to do this. See [`pingPong`](docs/interfaces/ServerArgs.md#pingpong).
+
+### Socket idleness
+
+API Gateway considers an idle connection to be one where no messages have been sent on the socket for a fixed duration [(currently 10 minutes)](https://docs.aws.amazon.com/apigateway/latest/developerguide/limits.html#apigateway-execution-service-websocket-limits-table). The WebSocket spec has support for detecting idle connections (ping/pong) but API Gateway doesn't use it. This means, in the case where both parties are connected, and no message is sent on the socket for the defined duration (direction agnostic), API Gateway will close the socket. A fix for this is to set up immediate reconnection on the client side.

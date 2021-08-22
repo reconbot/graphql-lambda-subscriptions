@@ -6,9 +6,10 @@ import {
 } from '@aws/dynamodb-expressions'
 import { collect } from 'streaming-iterables'
 import { Subscription } from '../model/Subscription'
-import { ServerClosure, PubSubEvent, PartialBy } from '../types'
+import { ServerClosure } from '../types'
 
-export const getFilteredSubs = async ({ server, event }: { server: Omit<ServerClosure, 'gateway'>, event: PartialBy<PubSubEvent, 'payload'> }): Promise<Subscription[]> => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const getFilteredSubs = async ({ server, event }: { server: Omit<ServerClosure, 'gateway'>, event: { topic: string, payload?: Record<string, any> } }): Promise<Subscription[]> => {
   if (!event.payload || Object.keys(event.payload).length === 0) {
     server.log('getFilteredSubs %j', { event })
 
