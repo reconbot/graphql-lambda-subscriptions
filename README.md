@@ -613,7 +613,7 @@ const instance = makeServer({
 
 ### Ping/Pong
 
-For whatever reason, AWS API Gateway does not support WebSocket protocol level ping/pong. This means early detection of unclean client disconnects a lot of extra work as [(graphql-ws doesn't provide subprotocol level ping/pong)](https://github.com/enisdenjo/graphql-ws/issues/117). So you can use Step Functions to do this. See [`pingPong`](docs/interfaces/ServerArgs.md#pingpong).
+For whatever reason, AWS API Gateway does not support WebSocket protocol level ping/pong. So you can use Step Functions to do this. See [`pingPong`](docs/interfaces/ServerArgs.md#pingpong).
 
 ### Socket idleness
 
