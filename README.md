@@ -2,7 +2,7 @@
 
 [![Release](https://github.com/reconbot/graphql-lambda-subscriptions/actions/workflows/test.yml/badge.svg)](https://github.com/reconbot/graphql-lambda-subscriptions/actions/workflows/test.yml)
 
-This is a fork of [`subscriptionless`](https://github.com/andyrichardson/subscriptionless) and is a Amazon Lambda Serverless equivalent to [`graphql-ws`](https://github.com/enisdenjo/graphql-ws). It follows the [`graphql-ws prototcol`](https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md). It is tested with the [Architect Sandbox](https://arc.codes/docs/en/reference/cli/sandbox) against `graphql-ws` directly and run in production today. For many applications `graphql-lambda-subscriptions` should do what `graphql-ws` does for you today without having to run a server.
+This is a fork of `subscriptionless`and is a Amazon Lambda Serverless equivalent to [`graphql-ws`](https://github.com/enisdenjo/graphql-ws). It follows the [`graphql-ws prototcol`](https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md). It is tested with the [Architect Sandbox](https://arc.codes/docs/en/reference/cli/sandbox) against `graphql-ws` directly and run in production today. For many applications `graphql-lambda-subscriptions` should do what `graphql-ws` does for you today without having to run a server.
 
 As `subscriptionless`'s tagline goes;
 
@@ -10,11 +10,11 @@ As `subscriptionless`'s tagline goes;
 
 ## Why a fork?
 
-I had different requirements and needed more features. This project wouldn't exist without `subscriptionless` and you should totally check it out.
+I had different requirements and needed more features. This project wouldn't exist without [`subscriptionless`](https://github.com/andyrichardson/subscriptionless) and you should totally check it out.
 
 ## Features
 
-- Only needs DynamoDB, API Gateway and Lambda (no app sync or other platform required, can use step functions for ping/pong support)
+- Only needs DynamoDB, API Gateway and Lambda (no [app sync](https://www.serverless.com/aws-appsync#benefits) or other managed graphql platform required, can use step functions for ping/pong support)
 - Provides a Pub/Sub system to broadcast events to subscriptions
 - Provides hooks for the full lifecycle of a subscription
 - Type compatible with GraphQL and [`nexus.js`](https://nexusjs.org)
