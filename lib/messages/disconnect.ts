@@ -2,7 +2,7 @@ import AggregateError from 'aggregate-error'
 import { parse } from 'graphql'
 import { equals } from '@aws/dynamodb-expressions'
 import { buildExecutionContext } from 'graphql/execution/execute'
-import { constructContext } from '../utils/constructContext'
+import { buildContext } from '../utils/buildContext'
 import { getResolverAndArgs } from '../utils/getResolverAndArgs'
 import { SubscribePseudoIterable, MessageHandler, PubSubEvent } from '../types'
 import { isArray } from '../utils/isArray'
@@ -36,7 +36,7 @@ export const disconnect: MessageHandler<null> = async ({ server, event }) => {
               server.schema,
               parse(sub.subscription.query),
               undefined,
-              await constructContext({ server, connectionInitPayload: sub.connectionInitPayload, connectionId: sub.connectionId }),
+              await buildContext({ server, connectionInitPayload: sub.connectionInitPayload, connectionId: sub.connectionId }),
               sub.subscription.variables,
               sub.subscription.operationName,
               undefined,

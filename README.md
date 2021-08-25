@@ -47,7 +47,7 @@ const subscriptionServer = makeServer({
 ### Export the handler
 
 ```ts
-export const handler = subscriptionServer.webSocketHandler;
+export const handler = subscriptionServer.webSocketHandler
 ```
 
 ### Configure API Gateway
@@ -86,7 +86,7 @@ functions:
 
 </details>
 
-### Create DynanmoDB tables for state
+### Create DynamoDB tables for state
 
 In-flight connections and subscriptions need to be persisted.
 
@@ -305,7 +305,7 @@ resource "aws_dynamodb_table" "subscriptions-table" {
 Use the [`subscribe`](docs/README.md#subscribe) function to associate incoming subscriptions with a topic.
 
 ```ts
-import { subscribe } from 'graphql-lambda-subscriptions';
+import { subscribe } from 'graphql-lambda-subscriptions'
 
 export const resolver = {
   Subscribe: {
@@ -326,7 +326,7 @@ Use the [`subscribe`](docs/README.md#subscribe) with [`SubscribeOptions`](docs/i
 > Note: If a function is provided, it will be called **on subscription start** and must return a serializable object.
 
 ```ts
-import { subscribe } from 'graphql-lambda-subscriptions';
+import { subscribe } from 'graphql-lambda-subscriptions'
 
 // Subscription agnostic filter
 subscribe('MY_TOPIC', {
@@ -350,9 +350,9 @@ subscribe('MY_TOPIC',{
 
 #### Publishing events
 
-Use the `publish` on your graphql-lambda-subscriptions server to publish events to active subscriptions. Payloads must be of type `Record<string, any>` so they can be filtered and stored.
+Use the [`publish()`](docs/interfaces/SubscriptionServer.md#publish) function on your graphql-lambda-subscriptions server to publish events to active subscriptions. Payloads must be of type `Record<string, any>` so they can be filtered and stored.
 
-```tsx
+```ts
 subscriptionServer.publish({
   type: 'MY_TOPIC',
   payload: {
@@ -363,7 +363,7 @@ subscriptionServer.publish({
 
 Events can come from many sources
 
-```tsx
+```ts
 // SNS Event
 export const snsHandler = (event) =>
   Promise.all(
@@ -373,17 +373,17 @@ export const snsHandler = (event) =>
         payload: JSON.parse(r.Sns.Message),
       })
     )
-  );
+  )
 
 // Manual Invocation
-export const invocationHandler = (payload) => subscriptionServer.publish({ topic: 'MY_TOPIC', payload });
+export const invocationHandler = (payload) => subscriptionServer.publish({ topic: 'MY_TOPIC', payload })
 ```
 
 #### Completing Subscriptions
 
 Use the `complete` on your graphql-lambda-subscriptions server to complete active subscriptions. Payloads are optional and match against filters like events do.
 
-```tsx
+```ts
 subscriptionServer.complete({
   type: 'MY_TOPIC',
   // optional payload
@@ -395,33 +395,11 @@ subscriptionServer.complete({
 
 ### Context
 
-Context values are accessible in all callback and resolver functions (`resolve`, `filter`, `onAfterSubscribe`, `onSubscribe` and `onComplete`).
+[Context](docs/interfaces/ServerArgs.md#context) is provided on the [`ServerArgs`](docs/interfaces/ServerArgs.md) object when creating a server. The values are accessible in all callback and resolver functions (eg. `resolve`, `filter`, `onAfterSubscribe`, `onSubscribe` and `onComplete`).
 
-<details>
+Assuming no `context` argument is provided when creating the server, the default value is an object with `connectionInitPayload`, `connectionId` properties and the [`publish()`](docs/interfaces/SubscriptionServer.md#publish) and [`complete()`](docs/interfaces/SubscriptionServer.md#complete) functions. These properties are merged into a provided object or passed into a provided function.
 
-<summary>📖 Default value</summary>
-
-Assuming no `context` argument is provided, the default value is an object containing a `connectionInitPayload` attribute.
-
-This attribute contains the [(optionally parsed)](#events) payload from `connection_init`.
-
-```ts
-export const resolver = {
-  Subscribe: {
-    mySubscription: {
-      resolve: (event, args, context) => {
-        console.log(context.connectionInitPayload); // payload from connection_init
-      },
-    },
-  },
-};
-```
-
-</details>
-
-<details>
-
-<summary>📖 Setting static context value</summary>
+#### Setting static context value
 
 An object can be provided via the `context` attribute when calling `makeServer`.
 
@@ -431,16 +409,12 @@ const instance = makeServer({
   context: {
     myAttr: 'hello',
   },
-});
+})
 ```
 
 The default values (above) will be appended to this object prior to execution.
 
-</details>
-
-<details>
-
-<summary>📖 Setting dynamic context value</summary>
+#### Setting dynamic context value
 
 A function (optionally async) can be provided via the `context` attribute when calling `makeServer`.
 
@@ -453,10 +427,31 @@ const instance = makeServer({
     myAttr: 'hello',
     user: connectionInitPayload.user,
   }),
-});
+})
 ```
 
-</details>
+#### Using the context
+
+```ts
+export const resolver = {
+  Subscribe: {
+    mySubscription: {
+      subscribe: subscribe('GREETINGS', {
+        filter(_, _, context) {
+          console.log(context.connectionId) // the connectionId
+        },
+        async onAfterSubscribe(_, _, { connectionId, publish }) {
+          await publish('GREETINGS', { message: `HI from ${connectionId}!` })
+        }
+      })
+      resolve: (event, args, context) => {
+        console.log(context.connectionInitPayload) // payload from connection_init
+        return event.payload.message
+      },
+    },
+  },
+}
+```
 
 ### Side effects
 
@@ -481,7 +476,7 @@ export const resolver = {
       }),
     },
   },
-};
+}
 ```
 
 </details>
@@ -502,7 +497,7 @@ const instance = makeServer({
   onConnect: ({ event }) => {
     /* */
   },
-});
+})
 ```
 
 </details>
@@ -519,7 +514,7 @@ const instance = makeServer({
   onDisconnect: ({ event }) => {
     /* */
   },
-});
+})
 ```
 
 </details>
@@ -536,19 +531,19 @@ const instance = makeServer({
 const instance = makeServer({
   /* ... */
   onConnectionInit: ({ message }) => {
-    const token = message.payload.token;
+    const token = message.payload.token
 
     if (!myValidation(token)) {
-      throw Error('Token validation failed');
+      throw Error('Token validation failed')
     }
 
     // Prevent sensitive data from being written to DB
     return {
       ...message.payload,
       token: undefined,
-    };
+    }
   },
-});
+})
 ```
 
 By default, the (optionally parsed) payload will be accessible via [context](#context).
@@ -569,7 +564,7 @@ const instance = makeServer({
   onSubscribe: ({ event, message }) => {
     /* */
   },
-});
+})
 ```
 
 </details>
@@ -586,7 +581,7 @@ const instance = makeServer({
   onComplete: ({ event, message }) => {
     /* */
   },
-});
+})
 ```
 
 </details>
@@ -603,7 +598,7 @@ const instance = makeServer({
   onError: (error, context) => {
     /* */
   },
-});
+})
 ```
 
 </details>

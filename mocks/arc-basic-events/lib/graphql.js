@@ -167,12 +167,6 @@ const fetchTableNames = async () => {
 const subscriptionServer = makeServer({
   dynamodb: arcTables.db,
   schema,
-  context: () => {
-    return {
-      publish: subscriptionServer.publish,
-      complete: subscriptionServer.complete,
-    }
-  },
   tableNames: fetchTableNames(),
   apiGatewayManagementApi: makeManagementAPI(),
   onError: err => {
