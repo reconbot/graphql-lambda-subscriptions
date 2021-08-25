@@ -38,9 +38,9 @@ export interface ServerArgs {
   /**
    * Makes the context object for all operations defaults to { connectionInitPayload, connectionId }
    */
-  context?: ((arg: { connectionInitPayload: any, connectionId: string }) => MaybePromise<object>) | object
+  context?: ((arg: { connectionInitPayload: any, connectionId: string, publish: SubscriptionServer['publish'], complete: SubscriptionServer['complete'] }) => MaybePromise<object>) | object
   /**
-   * If set
+   * If set you can use the `stepFunctionsHandler` and a step function to setup a per connection ping/pong cycle to detect disconnects sooner than the 10 minute idle timeout.
    */
   pingpong?: MaybePromise<{
     /**

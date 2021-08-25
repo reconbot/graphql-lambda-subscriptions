@@ -35,7 +35,7 @@ ___
 
 ### context
 
-• `Optional` **context**: `object` \| (`arg`: { `connectionId`: `string` ; `connectionInitPayload`: `any`  }) => [`MaybePromise`](../README.md#maybepromise)<`object`\>
+• `Optional` **context**: `object` \| (`arg`: { `complete`: (`event`: { `payload?`: `Record`<`string`, `any`\> ; `topic`: `string`  }) => `Promise`<`void`\> ; `connectionId`: `string` ; `connectionInitPayload`: `any` ; `publish`: (`event`: { `payload`: `Record`<`string`, `any`\> ; `topic`: `string`  }) => `Promise`<`void`\>  }) => [`MaybePromise`](../README.md#maybepromise)<`object`\>
 
 Makes the context object for all operations defaults to { connectionInitPayload, connectionId }
 
@@ -59,7 +59,7 @@ ___
 
 • `Optional` **pingpong**: [`MaybePromise`](../README.md#maybepromise)<`Object`\>
 
-If set
+If set you can use the `stepFunctionsHandler` and a step function to setup a per connection ping/pong cycle to detect disconnects sooner than the 10 minute idle timeout.
 
 ___
 

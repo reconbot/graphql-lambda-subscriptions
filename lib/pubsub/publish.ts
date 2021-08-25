@@ -2,10 +2,10 @@ import { parse, execute } from 'graphql'
 import { MessageType, NextMessage } from 'graphql-ws'
 import { ServerClosure, SubscriptionServer } from '../types'
 import { postToConnection } from '../utils/postToConnection'
-import { constructContext } from '../utils/constructContext'
+import { buildContext } from '../utils/buildContext'
 import { getFilteredSubs } from './getFilteredSubs'
 
-export const publish = (serverPromise: Promise<ServerClosure>): SubscriptionServer['publish'] => async event => {
+export const publish = (serverPromise: Promise<ServerClosure> | ServerClosure): SubscriptionServer['publish'] => async event => {
   const server = await serverPromise
   server.log('pubsub:publish %j', { event })
   const subscriptions = await getFilteredSubs({ server, event })
@@ -16,7 +16,7 @@ export const publish = (serverPromise: Promise<ServerClosure>): SubscriptionServ
       server.schema,
       parse(sub.subscription.query),
       event,
-      await constructContext({ server, connectionInitPayload: sub.connectionInitPayload, connectionId: sub.connectionId }),
+      await buildContext({ server, connectionInitPayload: sub.connectionInitPayload, connectionId: sub.connectionId }),
       sub.subscription.variables,
       sub.subscription.operationName,
       undefined,

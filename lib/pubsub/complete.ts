@@ -4,12 +4,12 @@ import { CompleteMessage, MessageType } from 'graphql-ws'
 import { buildExecutionContext } from 'graphql/execution/execute'
 import { ServerClosure, PubSubEvent, SubscribePseudoIterable, SubscriptionServer } from '../types'
 import { postToConnection } from '../utils/postToConnection'
-import { constructContext } from '../utils/constructContext'
+import { buildContext } from '../utils/buildContext'
 import { getResolverAndArgs } from '../utils/getResolverAndArgs'
 import { isArray } from '../utils/isArray'
 import { getFilteredSubs } from './getFilteredSubs'
 
-export const complete = (serverPromise: Promise<ServerClosure>): SubscriptionServer['complete'] => async event => {
+export const complete = (serverPromise: Promise<ServerClosure> | ServerClosure): SubscriptionServer['complete'] => async event => {
   const server = await serverPromise
   const subscriptions = await getFilteredSubs({ server, event })
   server.log('pubsub:complete %j', { event, subscriptions })
@@ -29,7 +29,7 @@ export const complete = (serverPromise: Promise<ServerClosure>): SubscriptionSer
       server.schema,
       parse(sub.subscription.query),
       undefined,
-      await constructContext({ server, connectionInitPayload: sub.connectionInitPayload, connectionId: sub.connectionId }),
+      await buildContext({ server, connectionInitPayload: sub.connectionInitPayload, connectionId: sub.connectionId }),
       sub.subscription.variables,
       sub.subscription.operationName,
       undefined,

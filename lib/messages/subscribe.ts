@@ -6,7 +6,7 @@ import {
   execute,
 } from 'graphql/execution/execute'
 import { APIGatewayWebSocketEvent, ServerClosure, MessageHandler, SubscribePseudoIterable, PubSubEvent } from '../types'
-import { constructContext } from '../utils/constructContext'
+import { buildContext } from '../utils/buildContext'
 import { getResolverAndArgs } from '../utils/getResolverAndArgs'
 import { postToConnection } from '../utils/postToConnection'
 import { deleteConnection } from '../utils/deleteConnection'
@@ -48,7 +48,7 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
     })
   }
 
-  const contextValue = await constructContext({ server, connectionInitPayload: connection.payload, connectionId })
+  const contextValue = await buildContext({ server, connectionInitPayload: connection.payload, connectionId })
 
   const execContext = buildExecutionContext(
     server.schema,

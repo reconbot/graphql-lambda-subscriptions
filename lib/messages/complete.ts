@@ -5,7 +5,7 @@ import { buildExecutionContext } from 'graphql/execution/execute'
 import { collect } from 'streaming-iterables'
 import { SubscribePseudoIterable, MessageHandler, PubSubEvent } from '../types'
 import { deleteConnection } from '../utils/deleteConnection'
-import { constructContext } from '../utils/constructContext'
+import { buildContext } from '../utils/buildContext'
 import { getResolverAndArgs } from '../utils/getResolverAndArgs'
 import { isArray } from '../utils/isArray'
 
@@ -26,7 +26,7 @@ export const complete: MessageHandler<CompleteMessage> =
         server.schema,
         parse(sub.subscription.query),
         undefined,
-        await constructContext({ server, connectionInitPayload: sub.connectionInitPayload, connectionId: sub.connectionId }),
+        await buildContext({ server, connectionInitPayload: sub.connectionInitPayload, connectionId: sub.connectionId }),
         sub.subscription.variables,
         sub.subscription.operationName,
         undefined,
