@@ -7,15 +7,9 @@ export const pong: MessageHandler<PongMessage> =
   async ({ server, event, message }) => {
     try {
       await server.onPong?.({ event, message })
-      await server.mapper.update(
-        Object.assign(new server.model.Connection(), {
-          id: event.requestContext.connectionId,
-          hasPonged: true,
-        }),
-        {
-          onMissing: 'skip',
-        },
-      )
+      await server.models.connection.update(event.requestContext.connectionId, {
+        hasPonged: true,
+      })
     } catch (err) {
       await server.onError?.(err, { event, message })
       await deleteConnection(server)(event.requestContext)

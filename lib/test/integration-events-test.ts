@@ -1,12 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { assert, use } from 'chai'
+import { assert } from 'chai'
 import { start as sandBoxStart, end as sandBoxStop } from '@architect/sandbox'
 import { collect, map } from 'streaming-iterables'
 import { executeQuery, executeToComplete, executeToDisconnect } from './execute-helper'
 import { startGqlWSServer } from './graphql-ws-schema'
-import chaiSubset from 'chai-subset'
-
-use(chaiSubset)
 
 describe('Events', () => {
   before(async () => {

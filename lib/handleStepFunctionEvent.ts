@@ -8,16 +8,11 @@ export const handleStepFunctionEvent = (serverPromise: Promise<ServerClosure>): 
   if (!server.pingpong) {
     throw new Error('Invalid pingpong settings')
   }
-  const connection = Object.assign(new server.model.Connection(), {
-    id: input.connectionId,
-  })
 
   // Initial state - send ping message
   if (input.state === 'PING') {
     await postToConnection(server)({ ...input, message: { type: MessageType.Ping } })
-    await server.mapper.update(Object.assign(connection, { hasPonged: false }), {
-      onMissing: 'skip',
-    })
+    await server.models.connection.update(input.connectionId, { hasPonged: false })
     return {
       ...input,
       state: 'REVIEW',
@@ -26,8 +21,8 @@ export const handleStepFunctionEvent = (serverPromise: Promise<ServerClosure>): 
   }
 
   // Follow up state - check if pong was returned
-  const conn = await server.mapper.get(connection)
-  if (conn.hasPonged) {
+  const conn = await server.models.connection.get(input.connectionId)
+  if (conn?.hasPonged) {
     return {
       ...input,
       state: 'PING',

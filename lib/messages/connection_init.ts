@@ -3,6 +3,7 @@ import { ConnectionInitMessage, MessageType } from 'graphql-ws'
 import { StateFunctionInput, MessageHandler } from '../types'
 import { postToConnection } from '../utils/postToConnection'
 import { deleteConnection } from '../utils/deleteConnection'
+import { defaultTTL } from '../utils/defaultTTL'
 
 /** Handler function for 'connection_init' message. */
 export const connection_init: MessageHandler<ConnectionInitMessage> =
@@ -28,12 +29,14 @@ export const connection_init: MessageHandler<ConnectionInitMessage> =
       }
 
       // Write to persistence
-      const connection = Object.assign(new server.model.Connection(), {
+      await server.models.connection.put({
         id: event.requestContext.connectionId,
+        createdAt: Date.now(),
         requestContext: event.requestContext,
         payload,
+        hasPonged: false,
+        ttl: defaultTTL(),
       })
-      await server.mapper.put(connection)
       return postToConnection(server)({
         ...event.requestContext,
         message: { type: MessageType.ConnectionAck },
