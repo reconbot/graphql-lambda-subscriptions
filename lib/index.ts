@@ -34,6 +34,6 @@ export {
   PubSubEvent,
   SubscriptionDefinition,
   SubscriptionFilter,
+  Connection,
+  Subscription,
 } from './types'
-export { Subscription } from './model/Subscription'
-export { Connection } from './model/Connection'

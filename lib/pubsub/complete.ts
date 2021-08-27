@@ -23,7 +23,7 @@ export const complete = (serverPromise: Promise<ServerClosure> | ServerClosure):
       ...sub.requestContext,
       message,
     })
-    await server.mapper.delete(sub)
+    await server.models.subscription.delete(sub.id)
 
     const execContext = buildExecutionContext(
       server.schema,

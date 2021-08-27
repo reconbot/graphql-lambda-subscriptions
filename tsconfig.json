@@ -9,8 +9,8 @@
     "strictNullChecks": true,
     "declaration": true,
     "importHelpers": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
+    "experimentalDecorators": false,
+    "emitDecoratorMetadata": false,
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true
   },

@@ -5,7 +5,7 @@ import {
   assertValidExecutionArguments,
   execute,
 } from 'graphql/execution/execute'
-import { APIGatewayWebSocketEvent, ServerClosure, MessageHandler, SubscribePseudoIterable, PubSubEvent } from '../types'
+import { APIGatewayWebSocketEvent, ServerClosure, MessageHandler, SubscribePseudoIterable, PubSubEvent, Subscription } from '../types'
 import { buildContext } from '../utils/buildContext'
 import { getResolverAndArgs } from '../utils/getResolverAndArgs'
 import { postToConnection } from '../utils/postToConnection'
@@ -27,15 +27,13 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
   const connectionId = event.requestContext.connectionId
   server.log('subscribe %j', { connectionId, query: message.payload.query })
 
-  const connection = await server.mapper.get(
-    Object.assign(new server.model.Connection(), {
-      id: connectionId,
-    }),
-  )
+  const connection = await server.models.connection.get(connectionId)
+  if (!connection) {
+    throw new Error('missing subscription record')
+  }
 
   // Check for variable errors
   const errors = validateMessage(server)(message)
-
   if (errors) {
     server.log('subscribe:validateError', errors)
     return postToConnection(server)({
@@ -100,7 +98,7 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
   await Promise.all(topicDefinitions.map(async ({ topic, filter }) => {
     const filterData = typeof filter === 'function' ? await filter(root, args, context, info) : filter
 
-    const subscription = Object.assign(new server.model.Subscription(), {
+    const subscription: Subscription = {
       id: `${connection.id}|${message.id}`,
       topic,
       filter: filterData || {},
@@ -113,9 +111,10 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
       connectionInitPayload: connection.payload,
       requestContext: event.requestContext,
       ttl: connection.ttl,
-    })
+      createdAt: Date.now(),
+    }
     server.log('subscribe:putSubscription %j', subscription)
-    await server.mapper.put(subscription)
+    await server.models.subscription.put(subscription)
   }))
 
   server.log('onAfterSubscribe', { onAfterSubscribe: !!onAfterSubscribe })

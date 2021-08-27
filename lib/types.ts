@@ -1,12 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
 import { ConnectionInitMessage, PingMessage, PongMessage } from 'graphql-ws'
-import { DataMapper } from '@aws/dynamodb-data-mapper'
 import { APIGatewayEventRequestContext, APIGatewayProxyEvent } from 'aws-lambda'
 import { GraphQLError, GraphQLResolveInfo, GraphQLSchema } from 'graphql'
 import { DynamoDB } from 'aws-sdk'
-import { Subscription } from './model/Subscription'
-import { Connection } from './model/Connection'
+import { DDBClient } from './ddb/DDB'
 
 export interface ServerArgs {
   /**
@@ -58,7 +56,7 @@ export interface ServerArgs {
   onConnectionInit?: (e: {
     event: APIGatewayWebSocketEvent
     message: ConnectionInitMessage
-  }) => MaybePromise<object>
+  }) => MaybePromise<Record<string, any>>
   onPing?: (e: {
     event: APIGatewayWebSocketEvent
     message: PingMessage
@@ -80,10 +78,10 @@ export type MaybePromise<T> = T | Promise<T>
  * @internal
  */
 export type ServerClosure = {
-  mapper: DataMapper
-  model: {
-    Subscription: typeof Subscription
-    Connection: typeof Connection
+  dynamodb: DynamoDB
+  models: {
+    subscription: DDBClient<Subscription>
+    connection: DDBClient<Connection>
   }
   log: LoggerFunction
   apiGatewayManagementApi?: ApiGatewayManagementApiSubset
@@ -92,7 +90,7 @@ export type ServerClosure = {
     delay: number
     timeout: number
   }
-} & Omit<ServerArgs, 'tableNames' | 'dynamodb'>
+} & Omit<ServerArgs, 'tableNames'>
 
 export interface SubscriptionServer {
   /**
@@ -207,3 +205,55 @@ export interface ApiGatewayManagementApiSubset {
   postToConnection(input: { ConnectionId: string, Data: string }): { promise: () => Promise<void> }
   deleteConnection(input: { ConnectionId: string }): { promise: () => Promise<void> }
 }
+
+
+/**
+ * Connection established with `connection_init`
+ * @internal
+ */
+export interface Connection {
+  /** ConnectionID **/
+  id: string
+  createdAt: number
+  /** Request context from $connect event */
+  requestContext: APIGatewayWebSocketRequestContext
+  /** connection_init payload (post-parse) */
+  payload: Record<string, any>
+  /** has a pong been returned */
+  hasPonged: boolean
+  ttl: number
+}
+
+
+/**
+ * Active subscriptions
+ * @internal
+ */
+export interface Subscription {
+  /*
+   * connectionId|subscriptionId
+   */
+  id: string
+  createdAt: number
+  topic: string
+  filter: Record<string, unknown>
+  connectionId: string
+  subscriptionId: string
+  connectionInitPayload: Record<string, unknown>
+  requestContext: APIGatewayWebSocketRequestContext
+  subscription: {
+    query: string
+    /** Actual value of variables for given field */
+    variables?: any
+    /** Value of variables for user provided subscription */
+    variableValues?: any
+    operationName?: string | null
+  }
+  ttl: number
+}
+
+/**
+ * All dynamodb tables
+ * @internal
+ */
+export type DDBType = Connection | Subscription

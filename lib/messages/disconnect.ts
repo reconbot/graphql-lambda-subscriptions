@@ -1,13 +1,12 @@
 import AggregateError from 'aggregate-error'
 import { parse } from 'graphql'
-import { equals } from '@aws/dynamodb-expressions'
 import { buildExecutionContext } from 'graphql/execution/execute'
 import { buildContext } from '../utils/buildContext'
 import { getResolverAndArgs } from '../utils/getResolverAndArgs'
 import { SubscribePseudoIterable, MessageHandler, PubSubEvent } from '../types'
 import { isArray } from '../utils/isArray'
 import { collect } from 'streaming-iterables'
-import { Connection } from '../model/Connection'
+import { Connection } from '../types'
 
 /** Handler function for 'disconnect' message. */
 export const disconnect: MessageHandler<null> = async ({ server, event }) => {
@@ -15,13 +14,12 @@ export const disconnect: MessageHandler<null> = async ({ server, event }) => {
   try {
     await server.onDisconnect?.({ event })
 
-    const topicSubscriptions = await collect(server.mapper.query(
-      server.model.Subscription,
-      {
-        connectionId: equals(event.requestContext.connectionId),
-      },
-      { indexName: 'ConnectionIndex' },
-    ))
+    const topicSubscriptions = await collect(server.models.subscription.query({
+      IndexName: 'ConnectionIndex',
+      ExpressionAttributeNames: { '#a': 'connectionId' },
+      ExpressionAttributeValues: { ':1': event.requestContext.connectionId },
+      KeyConditionExpression: '#a = :1',
+    }))
 
     const completed = {} as Record<string, boolean>
     const deletions = [] as Promise<void|Connection>[]
@@ -54,7 +52,7 @@ export const disconnect: MessageHandler<null> = async ({ server, event }) => {
             await onComplete?.(root, args, context, info)
           }
 
-          await server.mapper.delete(sub)
+          await server.models.subscription.delete(sub.id)
         })(),
       )
     }
@@ -63,11 +61,7 @@ export const disconnect: MessageHandler<null> = async ({ server, event }) => {
       // Delete subscriptions
       ...deletions,
       // Delete connection
-      server.mapper.delete(
-        Object.assign(new server.model.Connection(), {
-          id: event.requestContext.connectionId,
-        }),
-      ),
+      server.models.connection.delete(event.requestContext.connectionId),
     ])
   } catch (err) {
     server.log('messages:disconnect:onError', { err, event })

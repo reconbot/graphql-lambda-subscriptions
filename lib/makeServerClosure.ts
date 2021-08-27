@@ -1,34 +1,26 @@
-import { DataMapper } from '@aws/dynamodb-data-mapper'
-import { ServerArgs, ServerClosure } from './types'
-import { createModel } from './model/createModel'
-import { Subscription } from './model/Subscription'
-import { Connection } from './model/Connection'
+import { ServerArgs, ServerClosure, Connection, Subscription } from './types'
+import { DDB } from './ddb/DDB'
 import { log as debugLogger } from './utils/logger'
 
 export const makeServerClosure = async (opts: ServerArgs): Promise<ServerClosure> => {
   const {
     tableNames,
     log = debugLogger,
-    dynamodb,
+    dynamodb: dynamodbPromise,
     apiGatewayManagementApi,
     pingpong,
     ...rest
   } = opts
+  const dynamodb = await dynamodbPromise
   return {
     ...rest,
     apiGatewayManagementApi: await apiGatewayManagementApi,
     pingpong: await pingpong,
+    dynamodb: dynamodb,
     log,
-    model: {
-      Subscription: createModel({
-        model: Subscription,
-        table: (await tableNames)?.subscriptions || 'graphql_subscriptions',
-      }),
-      Connection: createModel({
-        model: Connection,
-        table: (await tableNames)?.connections || 'graphql_connections',
-      }),
+    models: {
+      subscription: DDB<Subscription>({ dynamodb, tableName:  (await tableNames)?.subscriptions || 'graphql_subscriptions', log }),
+      connection: DDB<Connection>({ dynamodb, tableName:  (await tableNames)?.connections || 'graphql_connections', log }),
     },
-    mapper: new DataMapper({ client: await dynamodb }),
   }
 }

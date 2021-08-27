@@ -4,7 +4,6 @@ import { tables } from '@architect/sandbox'
 import { subscribe } from './subscribe'
 import { mockServerContext } from '../test/mockServer'
 import { connection_init } from './connection_init'
-import { equals } from '@aws/dynamodb-expressions'
 import { collect } from 'streaming-iterables'
 import { subscribe as pubsubSubscribe } from '../pubsub/subscribe'
 import { makeExecutableSchema } from '@graphql-tools/schema'
@@ -60,8 +59,14 @@ describe('messages/subscribe', () => {
       ],
       delete: [],
     })
-    const [subscriptions] = await collect(server.mapper.query(server.model.Subscription, { connectionId: equals(event.requestContext.connectionId) }, { indexName: 'ConnectionIndex' }))
-    assert.include(subscriptions, { connectionId, subscriptionId: '1234' })
+
+    const [subscriptions] = await collect(server.models.subscription.query({
+      IndexName: 'ConnectionIndex',
+      ExpressionAttributeNames: { '#a': 'connectionId' },
+      ExpressionAttributeValues: { ':1': event.requestContext.connectionId },
+      KeyConditionExpression: '#a = :1',
+    }))
+    assert.containSubset(subscriptions, { connectionId, subscriptionId: '1234' })
   })
 
   it('sends errors on error', async () => {
@@ -158,7 +163,12 @@ describe('messages/subscribe', () => {
         assert.equal(error.message, 'don\'t subscribe!')
       }
       assert.deepEqual(onSubscribe, ['We did it!'])
-      const subscriptions = await collect(server.mapper.query(server.model.Subscription, { connectionId: equals(event.requestContext.connectionId) }, { indexName: 'ConnectionIndex' }))
+      const subscriptions = await collect(server.models.subscription.query({
+        IndexName: 'ConnectionIndex',
+        ExpressionAttributeNames: { '#a': 'connectionId' },
+        ExpressionAttributeValues: { ':1': event.requestContext.connectionId },
+        KeyConditionExpression: '#a = :1',
+      }))
       assert.isEmpty(subscriptions)
     })
 
@@ -206,7 +216,12 @@ describe('messages/subscribe', () => {
       await connection_init({ server, event: connectionInitEvent, message: JSON.parse(connectionInitEvent.body) })
       await subscribe({ server, event, message: JSON.parse(event.body) })
       assert.deepEqual(events, ['onSubscribe', 'onAfterSubscribe'])
-      const subscriptions = await collect(server.mapper.query(server.model.Subscription, { connectionId: equals(event.requestContext.connectionId) }, { indexName: 'ConnectionIndex' }))
+      const subscriptions = await collect(server.models.subscription.query({
+        IndexName: 'ConnectionIndex',
+        ExpressionAttributeNames: { '#a': 'connectionId' },
+        ExpressionAttributeValues: { ':1': event.requestContext.connectionId },
+        KeyConditionExpression: '#a = :1',
+      }))
       assert.isNotEmpty(subscriptions)
     })
   })

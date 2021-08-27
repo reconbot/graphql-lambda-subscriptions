@@ -34,9 +34,6 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@aws/dynamodb-data-mapper": "^0.7.3",
-    "@aws/dynamodb-data-mapper-annotations": "^0.7.3",
-    "@aws/dynamodb-expressions": "^0.7.3",
     "debug": "^4.3.2",
     "streaming-iterables": "^6.0.0"
   },
@@ -74,7 +71,6 @@
     "rollup-plugin-node-resolve": "^5.2.0",
     "semantic-release": "^17.4.4",
     "ts-node": "^10.2.0",
-    "tslib": "^2.3.0",
     "typedoc": "^0.21.6",
     "typedoc-plugin-markdown": "^3.10.4",
     "typescript": "^4.3.5",
@@ -86,7 +82,8 @@
     "require": [
       "esbuild-register",
       "chai/register-assert",
-      "./lib/test/setupPorts"
+      "./lib/test/setupPorts",
+      "./lib/test/setupContains"
     ],
     "spec": "lib/**/*-test.ts"
   }

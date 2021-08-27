@@ -1,60 +1,56 @@
-/* eslint-disable @typescript-eslint/ban-types */
-import {
-  attributeNotExists,
-  equals,
-  ConditionExpression,
-} from '@aws/dynamodb-expressions'
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { collect } from 'streaming-iterables'
-import { Subscription } from '../model/Subscription'
-import { ServerClosure } from '../types'
+import { ServerClosure, Subscription } from '../types'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getFilteredSubs = async ({ server, event }: { server: Omit<ServerClosure, 'gateway'>, event: { topic: string, payload?: Record<string, any> } }): Promise<Subscription[]> => {
   if (!event.payload || Object.keys(event.payload).length === 0) {
     server.log('getFilteredSubs %j', { event })
 
-    const iterator = server.mapper.query(
-      server.model.Subscription,
-      { topic: equals(event.topic) },
-      { indexName: 'TopicIndex' },
-    )
+    const iterator = server.models.subscription.query({
+      IndexName: 'TopicIndex',
+      ExpressionAttributeNames: { '#a': 'topic' },
+      ExpressionAttributeValues: { ':1': event.topic },
+      KeyConditionExpression: '#a = :1',
+    })
 
     return await collect(iterator)
   }
   const flattenPayload = collapseKeys(event.payload)
-  const conditions: ConditionExpression[] = Object.entries(flattenPayload).map(([key, value]) => ({
-    type: 'Or',
-    conditions: [
-      {
-        ...attributeNotExists(),
-        subject: `filter.${key}`,
-      },
-      {
-        ...equals(value),
-        subject: `filter.${key}`,
-      },
-    ],
-  }))
 
-  server.log('getFilteredSubs %j', { event, conditions })
+  const filterExpressions: string[] = []
+  const expressionAttributeValues: { [key: string]: string | number | boolean } = {}
+  const expressionAttributeNames: { [key: string]: string } = {}
 
-  const iterator = server.mapper.query(
-    server.model.Subscription,
-    { topic: equals(event.topic) },
-    {
-      filter: {
-        type: 'And',
-        conditions,
-      },
-      indexName: 'TopicIndex',
+  let attributeCounter = 0
+  for (const [key, value] of Object.entries(flattenPayload)) {
+    const aliasNumber = attributeCounter++
+    expressionAttributeNames[`#${aliasNumber}`] = key
+    expressionAttributeValues[`:${aliasNumber}`] = value
+    filterExpressions.push(`(#filter.#${aliasNumber} = :${aliasNumber} OR attribute_not_exists(#filter.#${aliasNumber}))`)
+  }
+
+  server.log('getFilteredSubs %j', { event, expressionAttributeNames, expressionAttributeValues, filterExpressions })
+
+  const iterator = server.models.subscription.query({
+    IndexName: 'TopicIndex',
+    ExpressionAttributeNames: {
+      '#hashKey': 'topic',
+      '#filter': 'filter',
+      ...expressionAttributeNames,
     },
-  )
+    ExpressionAttributeValues: {
+      ':hashKey': event.topic,
+      ...expressionAttributeValues,
+    },
+    KeyConditionExpression: '#hashKey = :hashKey',
+    FilterExpression: filterExpressions.join(' AND ') || undefined,
+  })
 
   return await collect(iterator)
 }
 
 export const collapseKeys = (
-  obj: object,
+  obj: Record<string, any>,
 ): Record<string, number | string | boolean> => {
   const record = {}
   for (const [k1, v1] of Object.entries(obj)) {
