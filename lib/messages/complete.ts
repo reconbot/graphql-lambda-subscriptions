@@ -13,7 +13,7 @@ export const complete: MessageHandler<CompleteMessage> =
   async ({ server, event, message }) => {
     server.log('messages:complete', { connectionId: event.requestContext.connectionId })
     try {
-      const subscription = await server.models.subscription.get(`${event.requestContext.connectionId}|${message.id}`)
+      const subscription = await server.models.subscription.get({ id: `${event.requestContext.connectionId}|${message.id}` })
       if (!subscription) {
         return
       }
@@ -37,7 +37,7 @@ export const complete: MessageHandler<CompleteMessage> =
       server.log('messages:complete:onComplete', { onComplete: !!onComplete })
       await onComplete?.(root, args, context, info)
 
-      await server.models.subscription.delete(subscription.id)
+      await server.models.subscription.delete({ id: subscription.id })
     } catch (err) {
       server.log('messages:complete:onError', { err, event })
       await server.onError?.(err, { event, message })

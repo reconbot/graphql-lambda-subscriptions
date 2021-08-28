@@ -29,7 +29,8 @@
 
 ### Properties
 
-- [topicDefinitions](SubscribePseudoIterable.md#topicdefinitions)
+- [filter](SubscribePseudoIterable.md#filter)
+- [topic](SubscribePseudoIterable.md#topic)
 
 ### Methods
 
@@ -39,9 +40,15 @@
 
 ## Properties
 
-### topicDefinitions
+### filter
 
-• **topicDefinitions**: [`SubscriptionDefinition`](../README.md#subscriptiondefinition)<`T`, `TSubscribeArgs`\>[]
+• `Optional` **filter**: [`SubscriptionFilter`](../README.md#subscriptionfilter)<`TSubscribeArgs`, `T`[``"payload"``]\>
+
+___
+
+### topic
+
+• **topic**: `string`
 
 ## Methods
 

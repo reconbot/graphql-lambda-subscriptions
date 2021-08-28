@@ -7,9 +7,9 @@ import { getFilteredSubs } from './getFilteredSubs'
 
 export const publish = (serverPromise: Promise<ServerClosure> | ServerClosure): SubscriptionServer['publish'] => async event => {
   const server = await serverPromise
-  server.log('pubsub:publish %j', { event })
+  server.log('pubsub:publish', { event })
   const subscriptions = await getFilteredSubs({ server, event })
-  server.log('pubsub:publish %j', { subscriptions: subscriptions.map(({ connectionId, filter, subscription }) => ({ connectionId, filter, subscription }) ) })
+  server.log('pubsub:publish', { subscriptions: subscriptions.map(({ connectionId, filter, subscription }) => ({ connectionId, filter, subscription }) ) })
 
   const iters = subscriptions.map(async (sub) => {
     const payload = await execute(

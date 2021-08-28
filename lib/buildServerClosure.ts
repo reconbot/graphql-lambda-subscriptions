@@ -1,8 +1,8 @@
-import { ServerArgs, ServerClosure, Connection, Subscription } from './types'
+import { ServerArgs, ServerClosure } from './types'
 import { DDB } from './ddb/DDB'
 import { log as debugLogger } from './utils/logger'
 
-export const makeServerClosure = async (opts: ServerArgs): Promise<ServerClosure> => {
+export const buildServerClosure = async (opts: ServerArgs): Promise<ServerClosure> => {
   const {
     tableNames,
     log = debugLogger,
@@ -19,8 +19,8 @@ export const makeServerClosure = async (opts: ServerArgs): Promise<ServerClosure
     dynamodb: dynamodb,
     log,
     models: {
-      subscription: DDB<Subscription>({ dynamodb, tableName:  (await tableNames)?.subscriptions || 'graphql_subscriptions', log }),
-      connection: DDB<Connection>({ dynamodb, tableName:  (await tableNames)?.connections || 'graphql_connections', log }),
+      subscription: DDB({ dynamodb, tableName: (await tableNames)?.subscriptions || 'graphql_subscriptions', log }),
+      connection: DDB({ dynamodb, tableName: (await tableNames)?.connections || 'graphql_connections', log }),
     },
   }
 }

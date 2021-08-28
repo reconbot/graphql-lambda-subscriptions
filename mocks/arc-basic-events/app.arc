@@ -9,7 +9,6 @@ Connection
   ttl TTL
 Subscription
   id *String
-  topic **String
   ttl TTL
 
 @indexes

@@ -108,7 +108,7 @@ ___
 
 ### onConnectionInit
 
-▸ `Optional` **onConnectionInit**(`e`): [`MaybePromise`](../README.md#maybepromise)<`object`\>
+▸ `Optional` **onConnectionInit**(`e`): [`MaybePromise`](../README.md#maybepromise)<`Record`<`string`, `any`\>\>
 
 #### Parameters
 
@@ -120,7 +120,7 @@ ___
 
 #### Returns
 
-[`MaybePromise`](../README.md#maybepromise)<`object`\>
+[`MaybePromise`](../README.md#maybepromise)<`Record`<`string`, `any`\>\>
 
 ___
 

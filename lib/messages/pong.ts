@@ -7,7 +7,7 @@ export const pong: MessageHandler<PongMessage> =
   async ({ server, event, message }) => {
     try {
       await server.onPong?.({ event, message })
-      await server.models.connection.update(event.requestContext.connectionId, {
+      await server.models.connection.update({ id: event.requestContext.connectionId }, {
         hasPonged: true,
       })
     } catch (err) {

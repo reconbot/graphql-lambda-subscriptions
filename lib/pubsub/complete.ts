@@ -12,7 +12,7 @@ import { getFilteredSubs } from './getFilteredSubs'
 export const complete = (serverPromise: Promise<ServerClosure> | ServerClosure): SubscriptionServer['complete'] => async event => {
   const server = await serverPromise
   const subscriptions = await getFilteredSubs({ server, event })
-  server.log('pubsub:complete %j', { event, subscriptions })
+  server.log('pubsub:complete', { event, subscriptions })
 
   const iters = subscriptions.map(async (sub) => {
     const message: CompleteMessage = {
@@ -23,7 +23,7 @@ export const complete = (serverPromise: Promise<ServerClosure> | ServerClosure):
       ...sub.requestContext,
       message,
     })
-    await server.models.subscription.delete(sub.id)
+    await server.models.subscription.delete({ id: sub.id })
 
     const execContext = buildExecutionContext(
       server.schema,

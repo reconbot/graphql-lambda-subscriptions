@@ -27,7 +27,7 @@ describe('collapseKeys', () => {
 let count = 1
 const makeTopic = () => `topic-${count++}`
 
-describe.only('getFilteredSubs', () => {
+describe('getFilteredSubs', () => {
   before(async () => {
     await tables.start({ cwd: './mocks/arc-basic-events', quiet: true })
   })

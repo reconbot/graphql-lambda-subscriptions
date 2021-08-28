@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { tables as arcTables } from '@architect/functions'
-import { makeServerClosure } from '../makeServerClosure'
+import { buildServerClosure } from '../buildServerClosure'
 import { ServerArgs, ServerClosure } from '../types'
 import { subscribe } from '../pubsub/subscribe'
 
@@ -63,5 +63,5 @@ export const mockServerArgs = async (args: Partial<ServerArgs> = {}): Promise<Se
 }
 
 export const mockServerContext = async (args?: Partial<ServerArgs>): Promise<ServerClosure> => {
-  return makeServerClosure(await mockServerArgs(args))
+  return buildServerClosure(await mockServerArgs(args))
 }

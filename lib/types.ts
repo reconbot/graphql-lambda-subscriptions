@@ -80,8 +80,8 @@ export type MaybePromise<T> = T | Promise<T>
 export type ServerClosure = {
   dynamodb: DynamoDB
   models: {
-    subscription: DDBClient<Subscription>
-    connection: DDBClient<Connection>
+    subscription: DDBClient<Subscription, { id: string }>
+    connection: DDBClient<Connection, {id: string }>
   }
   log: LoggerFunction
   apiGatewayManagementApi?: ApiGatewayManagementApiSubset
@@ -118,7 +118,7 @@ export interface SubscriptionServer {
 /**
  * Log operational events with a logger of your choice. It will get a message and usually object with relevant data
  */
-export type LoggerFunction = (message: string, obj?: any) => void
+export type LoggerFunction = (message: string, obj: Record<string, any>) => void
 
 export type WebSocketResponse = {
   statusCode: number
@@ -133,19 +133,12 @@ export type SubscriptionFilter<
   TReturn extends Record<string, any> = Record<string, any>
   > = Partial<TReturn> | void | ((...args: TSubscribeArgs) => MaybePromise<Partial<TReturn> | void>)
 
-export type SubscriptionDefinition<
-  T extends PubSubEvent,
-  TSubscribeArgs extends SubscribeArgs = SubscribeArgs,
-  > = {
-    topic: string
-    filter?: SubscriptionFilter<TSubscribeArgs, T['payload']>
-  }
-
 export type SubscribeHandler = <T extends PubSubEvent>(...args: any[]) => SubscribePseudoIterable<T>
 
 export interface SubscribePseudoIterable<T extends PubSubEvent, TSubscribeArgs extends SubscribeArgs = SubscribeArgs> {
   (...args: TSubscribeArgs): AsyncGenerator<T, never, unknown>
-  topicDefinitions: SubscriptionDefinition<T, TSubscribeArgs>[]
+  topic: string
+  filter?: SubscriptionFilter<TSubscribeArgs, T['payload']>
   onSubscribe?: (...args: TSubscribeArgs) => MaybePromise<void | GraphQLError[]>
   onAfterSubscribe?: (...args: TSubscribeArgs) => MaybePromise<void>
   onComplete?: (...args: TSubscribeArgs) => MaybePromise<void>
@@ -234,8 +227,8 @@ export interface Subscription {
    * connectionId|subscriptionId
    */
   id: string
-  createdAt: number
   topic: string
+  createdAt: number
   filter: Record<string, unknown>
   connectionId: string
   subscriptionId: string

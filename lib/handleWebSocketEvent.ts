@@ -10,7 +10,7 @@ import { pong } from './messages/pong'
 export const handleWebSocketEvent = (serverPromise: Promise<ServerClosure>): SubscriptionServer['webSocketHandler'] => async (event) => {
   const server = await serverPromise
   if (!event.requestContext) {
-    server.log('handleWebSocketEvent unknown')
+    server.log('handleWebSocketEvent unknown', { event })
     return {
       statusCode: 200,
       body: '',

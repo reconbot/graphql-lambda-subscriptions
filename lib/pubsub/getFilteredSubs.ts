@@ -4,7 +4,7 @@ import { ServerClosure, Subscription } from '../types'
 
 export const getFilteredSubs = async ({ server, event }: { server: Omit<ServerClosure, 'gateway'>, event: { topic: string, payload?: Record<string, any> } }): Promise<Subscription[]> => {
   if (!event.payload || Object.keys(event.payload).length === 0) {
-    server.log('getFilteredSubs %j', { event })
+    server.log('getFilteredSubs', { event })
 
     const iterator = server.models.subscription.query({
       IndexName: 'TopicIndex',
@@ -29,7 +29,7 @@ export const getFilteredSubs = async ({ server, event }: { server: Omit<ServerCl
     filterExpressions.push(`(#filter.#${aliasNumber} = :${aliasNumber} OR attribute_not_exists(#filter.#${aliasNumber}))`)
   }
 
-  server.log('getFilteredSubs %j', { event, expressionAttributeNames, expressionAttributeValues, filterExpressions })
+  server.log('getFilteredSubs', { event, expressionAttributeNames, expressionAttributeValues, filterExpressions })
 
   const iterator = server.models.subscription.query({
     IndexName: 'TopicIndex',
