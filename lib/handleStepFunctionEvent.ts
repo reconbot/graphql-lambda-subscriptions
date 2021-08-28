@@ -12,7 +12,7 @@ export const handleStepFunctionEvent = (serverPromise: Promise<ServerClosure>): 
   // Initial state - send ping message
   if (input.state === 'PING') {
     await postToConnection(server)({ ...input, message: { type: MessageType.Ping } })
-    await server.models.connection.update(input.connectionId, { hasPonged: false })
+    await server.models.connection.update({ id: input.connectionId }, { hasPonged: false })
     return {
       ...input,
       state: 'REVIEW',
@@ -21,7 +21,7 @@ export const handleStepFunctionEvent = (serverPromise: Promise<ServerClosure>): 
   }
 
   // Follow up state - check if pong was returned
-  const conn = await server.models.connection.get(input.connectionId)
+  const conn = await server.models.connection.get({ id: input.connectionId })
   if (conn?.hasPonged) {
     return {
       ...input,

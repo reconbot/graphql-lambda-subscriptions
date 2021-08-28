@@ -21,7 +21,6 @@ graphql-lambda-subscriptions
 - [LoggerFunction](README.md#loggerfunction)
 - [MaybePromise](README.md#maybepromise)
 - [SubscribeArgs](README.md#subscribeargs)
-- [SubscriptionDefinition](README.md#subscriptiondefinition)
 - [SubscriptionFilter](README.md#subscriptionfilter)
 - [WebSocketResponse](README.md#websocketresponse)
 
@@ -34,11 +33,11 @@ graphql-lambda-subscriptions
 
 ### LoggerFunction
 
-Ƭ **LoggerFunction**: (`message`: `string`, `obj?`: `any`) => `void`
+Ƭ **LoggerFunction**: (`message`: `string`, `obj`: `Record`<`string`, `any`\>) => `void`
 
 #### Type declaration
 
-▸ (`message`, `obj?`): `void`
+▸ (`message`, `obj`): `void`
 
 Log operational events with a logger of your choice. It will get a message and usually object with relevant data
 
@@ -47,7 +46,7 @@ Log operational events with a logger of your choice. It will get a message and u
 | Name | Type |
 | :------ | :------ |
 | `message` | `string` |
-| `obj?` | `any` |
+| `obj` | `Record`<`string`, `any`\> |
 
 ##### Returns
 
@@ -78,26 +77,6 @@ ___
 | `TRoot` | `unknown` |
 | `TArgs` | `Record`<`string`, `any`\> |
 | `TContext` | `unknown` |
-
-___
-
-### SubscriptionDefinition
-
-Ƭ **SubscriptionDefinition**<`T`, `TSubscribeArgs`\>: `Object`
-
-#### Type parameters
-
-| Name | Type |
-| :------ | :------ |
-| `T` | extends [`PubSubEvent`](interfaces/PubSubEvent.md) |
-| `TSubscribeArgs` | extends [`SubscribeArgs`](README.md#subscribeargs)[`SubscribeArgs`](README.md#subscribeargs) |
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `filter?` | [`SubscriptionFilter`](README.md#subscriptionfilter)<`TSubscribeArgs`, `T`[``"payload"``]\> |
-| `topic` | `string` |
 
 ___
 

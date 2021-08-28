@@ -25,9 +25,9 @@ export const subscribe: MessageHandler<SubscribeMessage> =
 
 const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, event, message }) => {
   const connectionId = event.requestContext.connectionId
-  server.log('subscribe %j', { connectionId, query: message.payload.query })
+  server.log('subscribe', { connectionId, query: message.payload.query })
 
-  const connection = await server.models.connection.get(connectionId)
+  const connection = await server.models.connection.get({ id: connectionId })
   if (!connection) {
     throw new Error('missing subscription record')
   }
@@ -79,7 +79,7 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
     throw new Error('No field')
   }
 
-  const { topicDefinitions, onSubscribe, onAfterSubscribe } = field.subscribe as SubscribePseudoIterable<PubSubEvent>
+  const { topic, filter, onSubscribe, onAfterSubscribe } = field.subscribe as SubscribePseudoIterable<PubSubEvent>
 
   server.log('onSubscribe', { onSubscribe: !!onSubscribe })
   const onSubscribeErrors = await onSubscribe?.(root, args, context, info)
@@ -95,27 +95,25 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
     })
   }
 
-  await Promise.all(topicDefinitions.map(async ({ topic, filter }) => {
-    const filterData = typeof filter === 'function' ? await filter(root, args, context, info) : filter
+  const filterData = typeof filter === 'function' ? await filter(root, args, context, info) : filter
 
-    const subscription: Subscription = {
-      id: `${connection.id}|${message.id}`,
-      topic,
-      filter: filterData || {},
-      subscriptionId: message.id,
-      subscription: {
-        variableValues: args,
-        ...message.payload,
-      },
-      connectionId: connection.id,
-      connectionInitPayload: connection.payload,
-      requestContext: event.requestContext,
-      ttl: connection.ttl,
-      createdAt: Date.now(),
-    }
-    server.log('subscribe:putSubscription %j', subscription)
-    await server.models.subscription.put(subscription)
-  }))
+  const subscription: Subscription = {
+    id: `${connection.id}|${message.id}`,
+    topic,
+    filter: filterData || {},
+    subscriptionId: message.id,
+    subscription: {
+      variableValues: args,
+      ...message.payload,
+    },
+    connectionId: connection.id,
+    connectionInitPayload: connection.payload,
+    requestContext: event.requestContext,
+    ttl: connection.ttl,
+    createdAt: Date.now(),
+  }
+  server.log('subscribe:putSubscription', subscription)
+  await server.models.subscription.put(subscription)
 
   server.log('onAfterSubscribe', { onAfterSubscribe: !!onAfterSubscribe })
   await onAfterSubscribe?.(root, args, context, info)

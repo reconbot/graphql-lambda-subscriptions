@@ -23,7 +23,7 @@ export const postToConnection = (server: ServerClosure) =>
     stage: string
     message: GraphqlWSMessages
   }): Promise<void> => {
-    server.log('sendMessage %j', { connectionId: ConnectionId, message })
+    server.log('sendMessage', { connectionId: ConnectionId, message })
 
     const api = server.apiGatewayManagementApi ??
       new ApiGatewayManagementApi({

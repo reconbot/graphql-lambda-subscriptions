@@ -3,10 +3,10 @@ import { publish } from './pubsub/publish'
 import { complete } from './pubsub/complete'
 import { handleWebSocketEvent } from './handleWebSocketEvent'
 import { handleStepFunctionEvent } from './handleStepFunctionEvent'
-import { makeServerClosure } from './makeServerClosure'
+import { buildServerClosure } from './buildServerClosure'
 
 export const makeServer = (opts: ServerArgs): SubscriptionServer => {
-  const closure: Promise<ServerClosure> = makeServerClosure(opts)
+  const closure: Promise<ServerClosure> = buildServerClosure(opts)
 
   return {
     webSocketHandler: handleWebSocketEvent(closure),
@@ -32,7 +32,6 @@ export {
   WebSocketResponse,
   StateFunctionInput,
   PubSubEvent,
-  SubscriptionDefinition,
   SubscriptionFilter,
   Connection,
   Subscription,

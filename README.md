@@ -131,7 +131,6 @@ Connection
   ttl TTL
 Subscription
   id *String
-  topic **String
   ttl TTL
 
 @indexes
@@ -209,8 +208,6 @@ resources:
         KeySchema:
           - AttributeName: id
             KeyType: HASH
-          - AttributeName: topic
-            KeyType: RANGE
         GlobalSecondaryIndexes:
           - IndexName: ConnectionIndex
             KeySchema:
@@ -259,7 +256,6 @@ resource "aws_dynamodb_table" "subscriptions-table" {
   read_capacity  = 1
   write_capacity = 1
   hash_key = "id"
-  range_key = "topic"
 
   attribute {
     name = "id"

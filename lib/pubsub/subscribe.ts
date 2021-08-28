@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { PubSubEvent, SubscribeArgs, SubscribeOptions, SubscribePseudoIterable, SubscriptionDefinition } from '../types'
+import { PubSubEvent, SubscribeArgs, SubscribeOptions, SubscribePseudoIterable } from '../types'
 
 /**
  * Creates subscribe handler for use in your graphql schema.
@@ -19,11 +19,9 @@ export const subscribe = <T extends PubSubEvent, TRoot extends any = any, TArgs 
     onComplete,
     onAfterSubscribe,
   } = options
-  const handler = createHandler<T>([{
-    topic,
-    filter,
-  }])
-
+  const handler = createHandler<T>()
+  handler.topic = topic
+  handler.filter = filter
   handler.onSubscribe = onSubscribe
   handler.onComplete = onComplete
   handler.onAfterSubscribe = onAfterSubscribe
@@ -31,11 +29,10 @@ export const subscribe = <T extends PubSubEvent, TRoot extends any = any, TArgs 
   return handler
 }
 
-const createHandler = <T extends PubSubEvent>(topicDefinitions: SubscriptionDefinition<T>[]) => {
+const createHandler = <T extends PubSubEvent>() => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any,require-yield
   const handler: any = async function* () {
     throw new Error('Subscription handler should not have been called')
   }
-  handler.topicDefinitions = topicDefinitions
   return handler as SubscribePseudoIterable<T>
 }
