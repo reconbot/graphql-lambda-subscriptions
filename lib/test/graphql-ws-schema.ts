@@ -14,6 +14,7 @@ const typeDefs = `
     greetings: String
     onSubscribeError: String
     onResolveError: String
+    oneEvent: String
   }
 `
 
@@ -43,6 +44,14 @@ const resolvers = {
         throw new Error('resolver error')
       },
     },
+    oneEvent:{
+      subscribe: async function*(){
+        yield { oneEvent:  'lets start!' }
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        await new Promise(() => {})
+      },
+    },
+
   },
 }
 

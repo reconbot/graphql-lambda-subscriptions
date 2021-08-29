@@ -34,6 +34,7 @@ const typeDefs = `
     onCompleteTestClientDisconnect: String
     onResolveError: String
     onCompleteServerComplete: String
+    oneEvent: String
   }
 `
 
@@ -139,6 +140,17 @@ const resolvers = {
         return payload.message
       },
     },
+    oneEvent:{
+      subscribe: subscribe('oneEvent', {
+        async onAfterSubscribe(_, __, { publish }) {
+          await publish({ topic: 'oneEvent', payload: { message: 'lets start!' } })
+        },
+      }),
+      resolve: ({ payload }) => {
+        return payload.message
+      },
+    },
+
   },
 }
 

@@ -2,7 +2,7 @@
 import { assert } from 'chai'
 import { start as sandBoxStart, end as sandBoxStop } from '@architect/sandbox'
 import { collect, map } from 'streaming-iterables'
-import { executeQuery, executeToComplete, executeToDisconnect } from './execute-helper'
+import { executeDoubleQuery, executeQuery, executeToComplete, executeToDisconnect } from './execute-helper'
 import { startGqlWSServer } from './graphql-ws-schema'
 
 describe('Events', () => {
@@ -62,6 +62,18 @@ describe('Events', () => {
       const gqlWSResult = await collect(executeQuery('subscription { onSubscribeError }', { url }))
 
       assert.deepEqual(lambdaResult, gqlWSResult)
+      await stop()
+    })
+
+    it('errors when duplicating subscription ids', async () => {
+      const { url, stop } = await startGqlWSServer()
+
+      const lambdaError = await collect(executeDoubleQuery('subscription { oneEvent }', { id: 1 }))
+      const gqlWSError = await collect(executeDoubleQuery('subscription { oneEvent }', { url, id: 1 }))
+      assert.deepEqual(lambdaError[0], gqlWSError[0])
+      // This would be exactly equal but apigateway doesn't support close reasons *eye roll*
+      assert.containSubset(lambdaError[1], { type: 'close' })
+      assert.containSubset(gqlWSError[1], { type: 'close' })
       await stop()
     })
   })
