@@ -18,6 +18,7 @@ export const subscribe: MessageHandler<SubscribeMessage> =
     try {
       await setupSubscription({ server, event, message })
     } catch (err) {
+      server.log('subscribe:error', { connectionId: event.requestContext.connectionId, error: err.message })
       await server.onError?.(err, { event, message })
       await deleteConnection(server)(event.requestContext)
     }
@@ -25,7 +26,7 @@ export const subscribe: MessageHandler<SubscribeMessage> =
 
 const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, event, message }) => {
   const connectionId = event.requestContext.connectionId
-  server.log('subscribe', { connectionId, query: message.payload.query })
+  server.log('subscribe', { connectionId, messageId: message.id, query: message.payload.query })
 
   const connection = await server.models.connection.get({ id: connectionId })
   if (!connection) {
@@ -83,7 +84,7 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
 
   server.log('onSubscribe', { onSubscribe: !!onSubscribe })
   const onSubscribeErrors = await onSubscribe?.(root, args, context, info)
-  if (onSubscribeErrors){
+  if (onSubscribeErrors) {
     server.log('onSubscribe', { onSubscribeErrors })
     return postToConnection(server)({
       ...event.requestContext,
@@ -97,8 +98,9 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
 
   const filterData = typeof filter === 'function' ? await filter(root, args, context, info) : filter
 
+  const subscriptionId = `${connection.id}|${message.id}`
   const subscription: Subscription = {
-    id: `${connection.id}|${message.id}`,
+    id: subscriptionId,
     topic,
     filter: filterData || {},
     subscriptionId: message.id,
@@ -113,7 +115,22 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
     createdAt: Date.now(),
   }
   server.log('subscribe:putSubscription', subscription)
-  await server.models.subscription.put(subscription)
+  try{
+    await server.models.subscription.put(subscription, {
+      ConditionExpression: '#id <> :id',
+      ExpressionAttributeNames: {
+        '#id': 'id',
+      },
+      ExpressionAttributeValues: {
+        ':id': subscriptionId,
+      },
+    })
+  } catch (error) {
+    if (error.code === 'ConditionalCheckFailedException') {
+      throw new Error(`Subscriber for ${message.id} already exists`)
+    }
+    throw error
+  }
 
   server.log('onAfterSubscribe', { onAfterSubscribe: !!onAfterSubscribe })
   await onAfterSubscribe?.(root, args, context, info)

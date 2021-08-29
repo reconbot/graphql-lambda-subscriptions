@@ -599,7 +599,6 @@ const instance = makeServer({
 
 </details>
 
-
 ## Caveats
 
 ### Ping/Pong
@@ -609,3 +608,7 @@ For whatever reason, AWS API Gateway does not support WebSocket protocol level p
 ### Socket idleness
 
 API Gateway considers an idle connection to be one where no messages have been sent on the socket for a fixed duration [(currently 10 minutes)](https://docs.aws.amazon.com/apigateway/latest/developerguide/limits.html#apigateway-execution-service-websocket-limits-table). The WebSocket spec has support for detecting idle connections (ping/pong) but API Gateway doesn't use it. This means, in the case where both parties are connected, and no message is sent on the socket for the defined duration (direction agnostic), API Gateway will close the socket. A fix for this is to set up immediate reconnection on the client side.
+
+### Socket Close Reasons
+
+API Gateway doesn't support custom reasons or codes for WebSockets being closed. So the codes and reason strings wont match `graphql-ws`.

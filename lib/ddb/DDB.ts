@@ -2,8 +2,8 @@ import { DynamoDB } from 'aws-sdk'
 import { LoggerFunction, DDBType } from '../types'
 
 export interface DDBClient<T extends DDBType, TKey> {
-  get: (Key: TKey) => Promise<T|null>
-  put: (obj: T) => Promise<T>
+  get: (Key: TKey) => Promise<T | null>
+  put: (obj: T, putOptions?: Partial<DynamoDB.DocumentClient.PutItemInput>) => Promise<T>
   update: (Key: TKey, obj: Partial<T>) => Promise<T>
   delete: (Key: TKey) => Promise<T>
   query: (options: Omit<DynamoDB.DocumentClient.QueryInput, 'TableName' | 'Select'>) => AsyncGenerator<T, void, undefined>
@@ -35,13 +35,14 @@ export const DDB = <T extends DDBType, TKey>({
     }
   }
 
-  const put = async (Item: T): Promise<T> => {
+  const put = async (Item: T, putOptions?: Partial<DynamoDB.DocumentClient.PutItemInput>): Promise<T> => {
     log('put', { tableName: tableName, Item })
     try {
       const { Attributes } = await documentClient.put({
         TableName: tableName,
         Item,
         ReturnValues: 'ALL_OLD',
+        ...putOptions,
       }).promise()
       return Attributes as T
     } catch (e) {
