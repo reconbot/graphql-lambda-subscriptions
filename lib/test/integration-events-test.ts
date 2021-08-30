@@ -65,7 +65,20 @@ describe('Events', () => {
       await stop()
     })
 
-    it('errors when duplicating subscription ids', async () => {
+    // it('errors when duplicating subscription ids with queries', async () => {
+    //   const { url, stop } = await startGqlWSServer()
+
+    //   const lambdaError = await collect(executeDoubleQuery('{ dontResolve }', { id: 1, skipWaitingForFirstMessage: true }))
+    //   const gqlWSError = await collect(executeDoubleQuery('{ dontResolve }', { id: 1, skipWaitingForFirstMessage: true, url }))
+    //   console.log({ lambdaError, gqlWSError })
+    //   assert.deepEqual(lambdaError[0], gqlWSError[0])
+    //   // This would be exactly equal but apigateway doesn't support close reasons *eye roll*
+    //   assert.containSubset(lambdaError[1], { type: 'close' })
+    //   assert.containSubset(gqlWSError[1], { type: 'close' })
+    //   await stop()
+    // })
+
+    it('errors when duplicating subscription ids with subscriptions', async () => {
       const { url, stop } = await startGqlWSServer()
 
       const lambdaError = await collect(executeDoubleQuery('subscription { oneEvent }', { id: 1 }))

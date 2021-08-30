@@ -39,7 +39,7 @@ export const complete = (serverPromise: Promise<ServerClosure> | ServerClosure):
       throw new AggregateError(execContext)
     }
 
-    const [field, root, args, context, info] = getResolverAndArgs(server)(execContext)
+    const { field, root, args, context, info } = getResolverAndArgs({ server, execContext })
 
     const onComplete = (field?.subscribe as SubscribePseudoIterable<PubSubEvent>)?.onComplete
     server.log('pubsub:complete:onComplete', { onComplete: !!onComplete })

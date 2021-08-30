@@ -14,6 +14,7 @@ module.exports = {
   },
   plugins: [
     '@typescript-eslint',
+    'mocha-no-only',
   ],
   rules: {
     '@typescript-eslint/member-delimiter-style': ['error', {
@@ -32,6 +33,7 @@ module.exports = {
     'object-curly-spacing': ['error', 'always'],
     'quote-props': ['error', 'as-needed'],
     'space-infix-ops': ['error'],
+    "mocha-no-only/mocha-no-only": ["error"],
     indent: ['error', 2],
     quotes: ['error', 'single'],
     semi: 'off',

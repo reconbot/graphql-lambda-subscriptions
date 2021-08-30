@@ -9,6 +9,7 @@ const PORT = 4000
 const typeDefs = `
   type Query {
     hello: String
+    dontResolve: String
   }
   type Subscription {
     greetings: String
@@ -21,6 +22,8 @@ const typeDefs = `
 const resolvers = {
   Query: {
     hello: () => 'Hello World!',
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    dontResolve: () => new Promise(() => {}),
   },
   Subscription: {
     greetings:{

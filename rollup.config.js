@@ -16,6 +16,7 @@ export default {
     'aws-sdk',
     'graphql',
     'graphql/execution/execute',
+    'graphql/execution/values',
     // actual deps
     'debug',
     'streaming-iterables',

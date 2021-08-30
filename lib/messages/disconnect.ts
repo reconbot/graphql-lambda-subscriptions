@@ -38,7 +38,7 @@ export const disconnect: MessageHandler<null> = async ({ server, event }) => {
         throw new AggregateError(execContext)
       }
 
-      const [field, root, args, context, info] = getResolverAndArgs(server)(execContext)
+      const { field, root, args, context, info } = getResolverAndArgs({ server, execContext })
 
       const onComplete = (field?.subscribe as SubscribePseudoIterable<PubSubEvent>)?.onComplete
       server.log('messages:disconnect:onComplete', { onComplete: !!onComplete })
@@ -47,7 +47,7 @@ export const disconnect: MessageHandler<null> = async ({ server, event }) => {
     })
 
     // do this first so that we don't create any more subscriptions for this connection
-    await server.models.connection.delete({ id: connectionId }),
+    await server.models.connection.delete({ id: connectionId })
     await Promise.all(deletions)
   } catch (err) {
     server.log('messages:disconnect:onError', { err, event })
