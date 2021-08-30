@@ -185,11 +185,13 @@ export const executeDoubleQuery = async function* (query: string, {
   stayConnected = false,
   timeout = 20_000,
   id = 1,
+  skipWaitingForFirstMessage = false,
 }: {
   url?: string
   stayConnected?: boolean
   timeout?: number
   id?: number
+  skipWaitingForFirstMessage?: boolean
 } = {}): AsyncGenerator<unknown, void, unknown> {
   const ws = new WebSocket(url, 'graphql-transport-ws')
 
@@ -235,11 +237,13 @@ export const executeDoubleQuery = async function* (query: string, {
     payload: { query },
   })
 
-  const firstMessage = await incomingMessages.generator.next()
-  if (firstMessage.done) {
-    return
+  if (!skipWaitingForFirstMessage) {
+    const firstMessage = await incomingMessages.generator.next()
+    if (firstMessage.done) {
+      return
+    }
+    yield firstMessage.value
   }
-  yield firstMessage.value
 
   await send({
     id: `${id}`,

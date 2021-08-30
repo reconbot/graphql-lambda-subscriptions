@@ -85,11 +85,15 @@ describe('messages/subscribe', () => {
     assert.deepEqual(state, {
       post: [
         { ConnectionId, Data: JSON.stringify({ type: 'connection_ack' }) },
-        { ConnectionId, Data: JSON.stringify({ type: 'error', id: 'abcdefg', payload: [{
-          message: 'Cannot query field "HIHOWEAREYOU" on type "Query".',
-          locations: [{ line:1, column:3 }],
+        {
+          ConnectionId, Data: JSON.stringify({
+            type: 'error', id: 'abcdefg', payload: [{
+              message: 'Cannot query field "HIHOWEAREYOU" on type "Query".',
+              locations: [{ line: 1, column: 3 }],
+            },
+            ],
+          }),
         },
-        ] }) },
       ],
       delete: [],
     })
@@ -102,7 +106,7 @@ describe('messages/subscribe', () => {
     const server = await mockServerContext({
       apiGatewayManagementApi: {
         // eslint-disable-next-line @typescript-eslint/no-empty-function
-        postToConnection: () => ({ promise: async () => { if(sendErr) { throw new Error('postToConnection Error') } } }),
+        postToConnection: () => ({ promise: async () => { if (sendErr) { throw new Error('postToConnection Error') } } }),
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         deleteConnection: () => ({ promise: async () => { } }),
       },
@@ -112,7 +116,7 @@ describe('messages/subscribe', () => {
     await connection_init({ server, event: connectionInitEvent, message: JSON.parse(connectionInitEvent.body) })
     sendErr = true
     await subscribe({ server, event, message: JSON.parse(event.body) })
-    assert.match(error.message, /postToConnection Error/ )
+    assert.match(error.message, /postToConnection Error/)
   })
 
   describe('callbacks', () => {
@@ -132,7 +136,7 @@ describe('messages/subscribe', () => {
           hello: () => 'Hello World!',
         },
         Subscription: {
-          greetings:{
+          greetings: {
             subscribe: pubsubSubscribe('greetings', {
               onSubscribe() {
                 onSubscribe.push('We did it!')
@@ -146,13 +150,8 @@ describe('messages/subscribe', () => {
         },
       }
 
-      const schema = makeExecutableSchema({
-        typeDefs,
-        resolvers,
-      })
-      const server = await mockServerContext({
-        schema,
-      })
+      const schema = makeExecutableSchema({ typeDefs, resolvers })
+      const server = await mockServerContext({ schema })
       const event: any = { requestContext: { connectedAt: 1628889984369, connectionId, domainName: 'localhost:3339', eventType: 'MESSAGE', messageDirection: 'IN', messageId: 'el4MNdOJy', requestId: '0yd7bkvXz', requestTimeEpoch: 1628889984774, routeKey: '$default', stage: 'testing' }, isBase64Encoded: false, body: '{"id":"1234","type":"subscribe","payload":{"query":"subscription { greetings }"}}' }
 
       await connection_init({ server, event: connectionInitEvent, message: JSON.parse(connectionInitEvent.body) })
@@ -172,6 +171,96 @@ describe('messages/subscribe', () => {
       assert.isEmpty(subscriptions)
     })
 
+    it('fires onSubscribe with variable args', async () => {
+      const collectedArgs: any[] = []
+
+      const typeDefs = `
+      type Query {
+        hello(name: String!): String
+      }
+      type Subscription {
+        greetings(name: String!): String
+      }
+    `
+      const resolvers = {
+        Query: {
+          hello: (_, { name }) => `Hello ${name}!`,
+        },
+        Subscription: {
+          greetings: {
+            subscribe: pubsubSubscribe('greetings', {
+              onSubscribe(_, args) {
+                collectedArgs.push(args)
+              },
+            }),
+            resolve: ({ payload }) => {
+              return payload
+            },
+          },
+        },
+      }
+
+      const schema = makeExecutableSchema({ typeDefs, resolvers })
+      const server = await mockServerContext({ schema })
+      const event: any = { requestContext: { connectedAt: 1628889984369, connectionId, domainName: 'localhost:3339', eventType: 'MESSAGE', messageDirection: 'IN', messageId: 'el4MNdOJy', requestId: '0yd7bkvXz', requestTimeEpoch: 1628889984774, routeKey: '$default', stage: 'testing' }, isBase64Encoded: false, body: '{"id":"1234","type":"subscribe","payload":{"query":"subscription($name: String!) { greetings(name: $name) }", "variables":{"name":"Jonas"}}}' }
+
+      await connection_init({ server, event: connectionInitEvent, message: JSON.parse(connectionInitEvent.body) })
+      await subscribe({ server, event, message: JSON.parse(event.body) })
+      assert.deepEqual(collectedArgs[0], { name: 'Jonas' })
+      const [subscription] = await collect(server.models.subscription.query({
+        IndexName: 'ConnectionIndex',
+        ExpressionAttributeNames: { '#a': 'connectionId' },
+        ExpressionAttributeValues: { ':1': event.requestContext.connectionId },
+        KeyConditionExpression: '#a = :1',
+      }))
+      assert.containSubset(subscription, { connectionId, subscriptionId: '1234', subscription: JSON.parse(event.body).payload })
+    })
+
+    it('fires onSubscribe with inline args', async () => {
+      const collectedArgs: any[] = []
+
+      const typeDefs = `
+      type Query {
+        hello(name: String!): String
+      }
+      type Subscription {
+        greetings(name: String!): String
+      }
+    `
+      const resolvers = {
+        Query: {
+          hello: (_, { name }) => `Hello ${name}!`,
+        },
+        Subscription: {
+          greetings: {
+            subscribe: pubsubSubscribe('greetings', {
+              onSubscribe(_, args) {
+                collectedArgs.push(args)
+              },
+            }),
+            resolve: ({ payload }) => {
+              return payload
+            },
+          },
+        },
+      }
+
+      const schema = makeExecutableSchema({ typeDefs, resolvers })
+      const server = await mockServerContext({ schema })
+      const event: any = { requestContext: { connectedAt: 1628889984369, connectionId, domainName: 'localhost:3339', eventType: 'MESSAGE', messageDirection: 'IN', messageId: 'el4MNdOJy', requestId: '0yd7bkvXz', requestTimeEpoch: 1628889984774, routeKey: '$default', stage: 'testing' }, isBase64Encoded: false, body: '{"id":"1234","type":"subscribe","payload":{"query":"subscription { greetings(name: \\"Jonas\\") }"}}' }
+
+      await connection_init({ server, event: connectionInitEvent, message: JSON.parse(connectionInitEvent.body) })
+      await subscribe({ server, event, message: JSON.parse(event.body) })
+      assert.deepEqual(collectedArgs[0], { name: 'Jonas' })
+      const [subscription] = await collect(server.models.subscription.query({
+        IndexName: 'ConnectionIndex',
+        ExpressionAttributeNames: { '#a': 'connectionId' },
+        ExpressionAttributeValues: { ':1': event.requestContext.connectionId },
+        KeyConditionExpression: '#a = :1',
+      }))
+      assert.containSubset(subscription, { connectionId, subscriptionId: '1234', subscription: JSON.parse(event.body).payload })
+    })
+
     it('fires onAfterSubscribe after subscribing', async () => {
       const events: string[] = []
 
@@ -188,7 +277,7 @@ describe('messages/subscribe', () => {
           hello: () => 'Hello World!',
         },
         Subscription: {
-          greetings:{
+          greetings: {
             subscribe: pubsubSubscribe('greetings', {
               onSubscribe() {
                 events.push('onSubscribe')
@@ -204,13 +293,8 @@ describe('messages/subscribe', () => {
         },
       }
 
-      const schema = makeExecutableSchema({
-        typeDefs,
-        resolvers,
-      })
-      const server = await mockServerContext({
-        schema,
-      })
+      const schema = makeExecutableSchema({ typeDefs, resolvers })
+      const server = await mockServerContext({ schema })
       const event: any = { requestContext: { connectedAt: 1628889984369, connectionId, domainName: 'localhost:3339', eventType: 'MESSAGE', messageDirection: 'IN', messageId: 'el4MNdOJy', requestId: '0yd7bkvXz', requestTimeEpoch: 1628889984774, routeKey: '$default', stage: 'testing' }, isBase64Encoded: false, body: '{"id":"1234","type":"subscribe","payload":{"query":"subscription { greetings }"}}' }
 
       await connection_init({ server, event: connectionInitEvent, message: JSON.parse(connectionInitEvent.body) })

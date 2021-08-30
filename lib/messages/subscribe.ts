@@ -70,12 +70,17 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
     })
   }
 
+  const subscriptionId = `${connection.id}|${message.id}`
+  if (await server.models.subscription.get({ id: subscriptionId })) {
+    throw new Error(`Subscriber for ${message.id} already exists`)
+  }
+
   if (execContext.operation.operation !== 'subscription') {
     await executeQuery(server, message, contextValue, event)
     return
   }
 
-  const [field, root, args, context, info] = getResolverAndArgs(server)(execContext)
+  const { field, root, args, context, info } = getResolverAndArgs({ server, execContext })
   if (!field) {
     throw new Error('No field')
   }
@@ -98,16 +103,12 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
 
   const filterData = typeof filter === 'function' ? await filter(root, args, context, info) : filter
 
-  const subscriptionId = `${connection.id}|${message.id}`
   const subscription: Subscription = {
     id: subscriptionId,
     topic,
     filter: filterData || {},
     subscriptionId: message.id,
-    subscription: {
-      variableValues: args,
-      ...message.payload,
-    },
+    subscription: message.payload,
     connectionId: connection.id,
     connectionInitPayload: connection.payload,
     requestContext: event.requestContext,
@@ -115,7 +116,7 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
     createdAt: Date.now(),
   }
   server.log('subscribe:putSubscription', subscription)
-  try{
+  try {
     await server.models.subscription.put(subscription, {
       ConditionExpression: '#id <> :id',
       ExpressionAttributeNames: {

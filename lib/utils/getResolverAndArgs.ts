@@ -5,14 +5,21 @@ import {
   ExecutionContext,
   getFieldDef,
 } from 'graphql/execution/execute'
+import { getArgumentValues } from 'graphql/execution/values'
 import { addPath } from 'graphql/jsutils/Path'
 import { ServerClosure } from '../types'
 
-type ResolverAndArgs = [ReturnType<typeof getFieldDef>, null, ExecutionContext['variableValues'], ExecutionContext['contextValue'], ReturnType<typeof buildResolveInfo>]
+interface ResolverAndArgs {
+  field: ReturnType<typeof getFieldDef>
+  root: null
+  args: ExecutionContext['variableValues']
+  context: ExecutionContext['contextValue']
+  info: ReturnType<typeof buildResolveInfo>
+}
 
-export const getResolverAndArgs = (c: Omit<ServerClosure, 'gateway'>) => (execContext: ExecutionContext): ResolverAndArgs => {
-  // Taken from graphql js - https://github.com/graphql/graphql-js/blob/main/src/subscription/subscribe.js#L190
-  const type = getOperationRootType(c.schema, execContext.operation)
+export const getResolverAndArgs = ({ server, execContext }: { server: ServerClosure, execContext: ExecutionContext }): ResolverAndArgs => {
+  // Taken from graphql-js - https://github.com/graphql/graphql-js/blob/main/src/subscription/subscribe.ts#L189
+  const type = getOperationRootType(server.schema, execContext.operation)
   const fields = collectFields(
     execContext,
     type,
@@ -25,26 +32,29 @@ export const getResolverAndArgs = (c: Omit<ServerClosure, 'gateway'>) => (execCo
   const fieldNodes = fields[responseName]
   const fieldNode = fieldNodes[0]
   const fieldName = fieldNode.name.value
-  const fieldDef = getFieldDef(c.schema, type, fieldName)
+  const field = getFieldDef(server.schema, type, fieldName)
   const path = addPath(undefined, responseName, type.name)
 
-  if (!fieldDef) {
+  if (!field) {
     throw new Error('invalid schema, unknown field definition')
   }
 
   const info = buildResolveInfo(
     execContext,
-    fieldDef,
+    field,
     fieldNodes,
     type,
     path,
   )
 
-  return [
-    fieldDef,
-    null,
-    execContext.variableValues,
-    execContext.contextValue,
+  const args = getArgumentValues(field, fieldNode, execContext.variableValues)
+  const context = execContext.contextValue
+
+  return {
+    field,
+    root: null,
+    args,
+    context,
     info,
-  ]
+  }
 }

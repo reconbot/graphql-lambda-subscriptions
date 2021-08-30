@@ -25,6 +25,7 @@ const makeManagementAPI = () => {
 const typeDefs = `
   type Query {
     hello: String
+    dontResolve: String
   }
   type Subscription {
     greetings: String
@@ -41,6 +42,7 @@ const typeDefs = `
 const resolvers = {
   Query: {
     hello: () => 'Hello World!',
+    dontResolve: () => new Promise(() => {}),
   },
   Subscription: {
     greetings:{
