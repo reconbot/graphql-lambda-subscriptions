@@ -43,7 +43,7 @@
   },
   "devDependencies": {
     "@architect/functions": "^4.0.0",
-    "@architect/sandbox": "git://github.com/reconbot/sandbox.git#05cf0e856e5934f73279598993f46fc2aa2d5b3c",
+    "@architect/sandbox": "git://github.com/reconbot/sandbox.git#reconbot/management-api",
     "@graphql-tools/schema": "^8.0.3",
     "@microsoft/api-extractor": "^7.18.11",
     "@types/architect__sandbox": "^3.3.3",
