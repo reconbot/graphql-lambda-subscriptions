@@ -12,7 +12,6 @@ jobs:
         with:
           node-version: 14
       - run: npm ci
-      - run: npm run build # needs to happen until I figure out a way to hotload it
       - name: Test
         run: npm run test
   lint:

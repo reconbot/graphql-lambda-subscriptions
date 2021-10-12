@@ -13,7 +13,7 @@ describe('collapseKeys', () => {
       'b.d': 'hi',
       'b.e.f': false,
     })
-    assert.deepEqual(collapseKeys({ a: [1,2,3, { b: 4, c: [], d: null, e: undefined }] }), {
+    assert.deepEqual(collapseKeys({ a: [1, 2, 3, { b: 4, c: [], d: null, e: undefined }] }), {
       'a.0': 1,
       'a.1': 2,
       'a.2': 3,
@@ -42,13 +42,13 @@ describe('getFilteredSubs', () => {
     const subscription = {
       id: '1',
       topic,
-      filter: { },
+      filter: {},
       subscriptionId: '1',
-      subscription: { } as any,
+      subscription: {} as any,
       connectionId: 'abcd',
       connectionInitPayload: {},
       requestContext: {} as any,
-      ttl: Date.now() + 100000,
+      ttl: Math.floor(Date.now() / 1000) + 100000,
       createdAt: Date.now(),
     }
 
@@ -64,11 +64,11 @@ describe('getFilteredSubs', () => {
       topic,
       filter: { language: 'en' },
       subscriptionId: '2',
-      subscription: { } as any,
+      subscription: {} as any,
       connectionId: 'abcd',
       connectionInitPayload: {},
       requestContext: {} as any,
-      ttl: Date.now() + 100000,
+      ttl: Math.floor(Date.now() / 1000) + 100000,
       createdAt: Date.now(),
     }
 
@@ -86,11 +86,11 @@ describe('getFilteredSubs', () => {
       topic,
       filter: { language: 'en ' },
       subscriptionId: '12345',
-      subscription: { } as any,
+      subscription: {} as any,
       connectionId: '1234',
       connectionInitPayload: {},
       requestContext: {} as any,
-      ttl: Date.now() + 100000,
+      ttl: Math.floor(Date.now() / 1000) + 100000,
       createdAt: Date.now(),
     }
 

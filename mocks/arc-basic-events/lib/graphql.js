@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
+require('esbuild-register')
 const { makeExecutableSchema } = require('@graphql-tools/schema')
 const { tables: arcTables } = require('@architect/functions')
-const { makeServer, subscribe } = require('../../../dist')
+const { makeServer, subscribe } = require('../../../lib')
 const { ApiGatewayManagementApi } = require('aws-sdk')
 const { GraphQLError } = require('graphql')
 

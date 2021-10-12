@@ -3,6 +3,9 @@ basic-events
 
 @ws
 
+@static
+folder dist
+
 @tables
 Connection
   id *String
@@ -15,7 +18,6 @@ Subscription
 
 Subscription
   connectionId *String
-#  topicAndKey **String
   name ConnectionIndex
 
 Subscription
