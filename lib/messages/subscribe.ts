@@ -49,15 +49,13 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
 
   const contextValue = await buildContext({ server, connectionInitPayload: connection.payload, connectionId })
 
-  const execContext = buildExecutionContext(
-    server.schema,
-    parse(message.payload.query),
-    undefined,
+  const execContext = buildExecutionContext({
+    schema: server.schema,
+    document: parse(message.payload.query),
     contextValue,
-    message.payload.variables,
-    message.payload.operationName,
-    undefined,
-  )
+    variableValues: message.payload.variables,
+    operationName: message.payload.operationName,
+  })
 
   if (isArray(execContext)) {
     return postToConnection(server)({
@@ -80,7 +78,7 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
     return
   }
 
-  const { field, root, args, context, info } = getResolverAndArgs({ server, execContext })
+  const { field, root, args, context, info } = getResolverAndArgs({ execContext })
   if (!field) {
     throw new Error('No field')
   }
@@ -160,15 +158,13 @@ const validateMessage = (server: ServerClosure) => (message: SubscribeMessage) =
 async function executeQuery(server: ServerClosure, message: SubscribeMessage, contextValue: any, event: APIGatewayWebSocketEvent) {
   server.log('executeQuery', { connectionId: event.requestContext.connectionId, query: message.payload.query })
 
-  const result = await execute(
-    server.schema,
-    parse(message.payload.query),
-    undefined,
+  const result = await execute({
+    schema: server.schema,
+    document: parse(message.payload.query),
     contextValue,
-    message.payload.variables,
-    message.payload.operationName,
-    undefined,
-  )
+    variableValues: message.payload.variables,
+    operationName: message.payload.operationName,
+  })
 
   await postToConnection(server)({
     ...event.requestContext,

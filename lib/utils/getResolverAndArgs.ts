@@ -1,13 +1,12 @@
-import { getOperationRootType } from 'graphql'
+import { GraphQLError } from 'graphql'
 import {
   buildResolveInfo,
-  collectFields,
   ExecutionContext,
   getFieldDef,
 } from 'graphql/execution/execute'
+import { collectFields } from 'graphql/execution/collectFields'
 import { getArgumentValues } from 'graphql/execution/values'
 import { addPath } from 'graphql/jsutils/Path'
-import { ServerClosure } from '../types'
 
 interface ResolverAndArgs {
   field: ReturnType<typeof getFieldDef>
@@ -17,44 +16,52 @@ interface ResolverAndArgs {
   info: ReturnType<typeof buildResolveInfo>
 }
 
-export const getResolverAndArgs = ({ server, execContext }: { server: ServerClosure, execContext: ExecutionContext }): ResolverAndArgs => {
-  // Taken from graphql-js - https://github.com/graphql/graphql-js/blob/main/src/subscription/subscribe.ts#L189
-  const type = getOperationRootType(server.schema, execContext.operation)
-  const fields = collectFields(
-    execContext,
-    type,
-    execContext.operation.selectionSet,
-    Object.create(null),
-    Object.create(null),
-  )
-  const responseNames = Object.keys(fields)
-  const responseName = responseNames[0]
-  const fieldNodes = fields[responseName]
-  const fieldNode = fieldNodes[0]
-  const fieldName = fieldNode.name.value
-  const field = getFieldDef(server.schema, type, fieldName)
-  const path = addPath(undefined, responseName, type.name)
+export const getResolverAndArgs = ({ execContext }: { execContext: ExecutionContext }): ResolverAndArgs => {
+  // Taken from graphql-js executeSubscription - https://github.com/graphql/graphql-js/blob/main/src/execution/subscribe.ts#L187
+  const { schema, fragments, operation, variableValues, contextValue } = execContext
 
-  if (!field) {
-    throw new Error('invalid schema, unknown field definition')
+  const rootType = schema.getSubscriptionType()
+  if (rootType == null) {
+    throw new GraphQLError(
+      'Schema is not configured to execute subscription operation.',
+      operation,
+    )
   }
 
+  const rootFields = collectFields(
+    schema,
+    fragments,
+    variableValues,
+    rootType,
+    operation.selectionSet,
+  )
+  const [responseName, fieldNodes] = [...rootFields.entries()][0]
+  const fieldDef = getFieldDef(schema, rootType, fieldNodes[0])
+
+  if (!fieldDef) {
+    const fieldName = fieldNodes[0].name.value
+    throw new GraphQLError(
+      `The subscription field "${fieldName}" is not defined.`,
+      fieldNodes,
+    )
+  }
+
+  const path = addPath(undefined, responseName, rootType.name)
   const info = buildResolveInfo(
     execContext,
-    field,
+    fieldDef,
     fieldNodes,
-    type,
+    rootType,
     path,
   )
 
-  const args = getArgumentValues(field, fieldNode, execContext.variableValues)
-  const context = execContext.contextValue
+  const args = getArgumentValues(fieldDef, fieldNodes[0], variableValues)
 
   return {
-    field,
+    field: fieldDef,
     root: null,
     args,
-    context,
+    context: contextValue,
     info,
   }
 }

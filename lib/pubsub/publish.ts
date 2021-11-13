@@ -12,15 +12,14 @@ export const publish = (serverPromise: Promise<ServerClosure> | ServerClosure): 
   server.log('pubsub:publish', { subscriptions: subscriptions.map(({ connectionId, filter, subscription }) => ({ connectionId, filter, subscription }) ) })
 
   const iters = subscriptions.map(async (sub) => {
-    const payload = await execute(
-      server.schema,
-      parse(sub.subscription.query),
-      event,
-      await buildContext({ server, connectionInitPayload: sub.connectionInitPayload, connectionId: sub.connectionId }),
-      sub.subscription.variables,
-      sub.subscription.operationName,
-      undefined,
-    )
+    const payload = await execute({
+      schema: server.schema,
+      document: parse(sub.subscription.query),
+      rootValue: event,
+      contextValue: await buildContext({ server, connectionInitPayload: sub.connectionInitPayload, connectionId: sub.connectionId }),
+      variableValues: sub.subscription.variables,
+      operationName: sub.subscription.operationName,
+    })
 
     const message: NextMessage = {
       id: sub.subscriptionId,
