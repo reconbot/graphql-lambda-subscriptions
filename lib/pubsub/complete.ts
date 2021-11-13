@@ -25,21 +25,19 @@ export const complete = (serverPromise: Promise<ServerClosure> | ServerClosure):
     })
     await server.models.subscription.delete({ id: sub.id })
 
-    const execContext = buildExecutionContext(
-      server.schema,
-      parse(sub.subscription.query),
-      undefined,
-      await buildContext({ server, connectionInitPayload: sub.connectionInitPayload, connectionId: sub.connectionId }),
-      sub.subscription.variables,
-      sub.subscription.operationName,
-      undefined,
-    )
+    const execContext = buildExecutionContext({
+      schema: server.schema,
+      document: parse(sub.subscription.query),
+      contextValue: await buildContext({ server, connectionInitPayload: sub.connectionInitPayload, connectionId: sub.connectionId }),
+      variableValues: sub.subscription.variables,
+      operationName: sub.subscription.operationName,
+    })
 
     if (isArray(execContext)) {
       throw new AggregateError(execContext)
     }
 
-    const { field, root, args, context, info } = getResolverAndArgs({ server, execContext })
+    const { field, root, args, context, info } = getResolverAndArgs({ execContext })
 
     const onComplete = (field?.subscribe as SubscribePseudoIterable<PubSubEvent>)?.onComplete
     server.log('pubsub:complete:onComplete', { onComplete: !!onComplete })

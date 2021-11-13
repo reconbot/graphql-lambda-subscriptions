@@ -16,21 +16,19 @@ export const complete: MessageHandler<CompleteMessage> = async ({ server, event,
     if (!subscription) {
       return
     }
-    const execContext = buildExecutionContext(
-      server.schema,
-      parse(subscription.subscription.query),
-      undefined,
-      await buildContext({ server, connectionInitPayload: subscription.connectionInitPayload, connectionId: subscription.connectionId }),
-      subscription.subscription.variables,
-      subscription.subscription.operationName,
-      undefined,
-    )
+    const execContext = buildExecutionContext({
+      schema: server.schema,
+      document: parse(subscription.subscription.query),
+      contextValue: await buildContext({ server, connectionInitPayload: subscription.connectionInitPayload, connectionId: subscription.connectionId }),
+      variableValues: subscription.subscription.variables,
+      operationName: subscription.subscription.operationName,
+    })
 
     if (isArray(execContext)) {
       throw new AggregateError(execContext)
     }
 
-    const { field, root, args, context, info } = getResolverAndArgs({ server, execContext })
+    const { field, root, args, context, info } = getResolverAndArgs({ execContext })
 
     const onComplete = (field?.subscribe as SubscribePseudoIterable<PubSubEvent>)?.onComplete
     server.log('messages:complete:onComplete', { onComplete: !!onComplete })

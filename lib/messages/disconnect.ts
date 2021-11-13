@@ -24,21 +24,19 @@ export const disconnect: MessageHandler<null> = async ({ server, event }) => {
     const deletions = topicSubscriptions.map(async (sub) => {
       const queryContext = await buildContext({ server, connectionInitPayload: sub.connectionInitPayload, connectionId })
 
-      const execContext = buildExecutionContext(
-        server.schema,
-        parse(sub.subscription.query),
-        undefined,
-        queryContext,
-        sub.subscription.variables,
-        sub.subscription.operationName,
-        undefined,
-      )
+      const execContext = buildExecutionContext({
+        schema: server.schema,
+        document: parse(sub.subscription.query),
+        contextValue: queryContext,
+        variableValues: sub.subscription.variables,
+        operationName: sub.subscription.operationName,
+      })
 
       if (isArray(execContext)) {
         throw new AggregateError(execContext)
       }
 
-      const { field, root, args, context, info } = getResolverAndArgs({ server, execContext })
+      const { field, root, args, context, info } = getResolverAndArgs({ execContext })
 
       const onComplete = (field?.subscribe as SubscribePseudoIterable<PubSubEvent>)?.onComplete
       server.log('messages:disconnect:onComplete', { onComplete: !!onComplete })
