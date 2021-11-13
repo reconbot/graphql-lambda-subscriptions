@@ -17,6 +17,7 @@ module.exports = {
     'mocha-no-only',
   ],
   rules: {
+    '@typescript-eslint/no-unnecessary-type-constraint': 'off',
     '@typescript-eslint/member-delimiter-style': ['error', {
       multiline: { delimiter: 'none' },
       singleline: { delimiter: 'comma', requireLast: false },
@@ -33,7 +34,7 @@ module.exports = {
     'object-curly-spacing': ['error', 'always'],
     'quote-props': ['error', 'as-needed'],
     'space-infix-ops': ['error'],
-    "mocha-no-only/mocha-no-only": ["error"],
+    'mocha-no-only/mocha-no-only': ['error'],
     indent: ['error', 2],
     quotes: ['error', 'single'],
     semi: 'off',
