@@ -25,6 +25,7 @@ const typeDefs = `
 const resolvers = {
   Query: {
     hello: () => 'Hello World!',
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     dontResolve: () => new Promise(() => {}),
   },
   Subscription: {

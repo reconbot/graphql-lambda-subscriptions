@@ -7,7 +7,7 @@
 | Name | Type |
 | :------ | :------ |
 | `T` | extends [`PubSubEvent`](PubSubEvent.md) |
-| `TSubscribeArgs` | extends [`SubscribeArgs`](../README.md#subscribeargs)[`SubscribeArgs`](../README.md#subscribeargs) |
+| `TSubscribeArgs` | extends [`SubscribeArgs`](../README.md#subscribeargs) = [`SubscribeArgs`](../README.md#subscribeargs) |
 
 ## Callable
 
