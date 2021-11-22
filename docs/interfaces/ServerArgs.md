@@ -57,7 +57,7 @@ ___
 
 ### pingpong
 
-• `Optional` **pingpong**: [`MaybePromise`](../README.md#maybepromise)<`Object`\>
+• `Optional` **pingpong**: [`MaybePromise`](../README.md#maybepromise)<{ `delay`: `number` ; `machine`: `string` ; `timeout`: `number`  }\>
 
 If set you can use the `stepFunctionsHandler` and a step function to setup a per connection ping/pong cycle to detect disconnects sooner than the 10 minute idle timeout.
 
@@ -81,7 +81,7 @@ ___
 
 ### tableNames
 
-• `Optional` **tableNames**: [`MaybePromise`](../README.md#maybepromise)<`Object`\>
+• `Optional` **tableNames**: [`MaybePromise`](../README.md#maybepromise)<{ `connections?`: `string` ; `subscriptions?`: `string`  }\>
 
 An optional object or a promise for an object with DDB table names.
 

@@ -88,8 +88,8 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `TSubscribeArgs` | extends [`SubscribeArgs`](README.md#subscribeargs)[`SubscribeArgs`](README.md#subscribeargs) |
-| `TReturn` | extends `Record`<`string`, `any`\>`Record`<`string`, `any`\> |
+| `TSubscribeArgs` | extends [`SubscribeArgs`](README.md#subscribeargs) = [`SubscribeArgs`](README.md#subscribeargs) |
+| `TReturn` | extends `Record`<`string`, `any`\> = `Record`<`string`, `any`\> |
 
 ___
 
@@ -136,9 +136,9 @@ Creates subscribe handler for use in your graphql schema.
 | Name | Type |
 | :------ | :------ |
 | `T` | extends [`PubSubEvent`](interfaces/PubSubEvent.md) |
-| `TRoot` | extends `unknown``any` |
-| `TArgs` | extends `Record`<`string`, `any`\>`any` |
-| `TContext` | extends `unknown``any` |
+| `TRoot` | extends `unknown` = `any` |
+| `TArgs` | extends `Record`<`string`, `any`\> = `any` |
+| `TContext` | extends `unknown` = `any` |
 
 #### Parameters
 
