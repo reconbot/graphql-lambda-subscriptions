@@ -1,27 +1,9 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 require('esbuild-register')
 const { makeExecutableSchema } = require('@graphql-tools/schema')
-const { tables: arcTables } = require('@architect/functions')
+const { tables: arcTables, ws } = require('@architect/functions')
 const { makeServer, subscribe } = require('../../../lib')
-const { ApiGatewayManagementApi } = require('aws-sdk')
 const { GraphQLError } = require('graphql')
-
-const makeManagementAPI = () => {
-  const ARC_WSS_URL = process.env.ARC_WSS_URL
-  const port = process.env.ARC_INTERNAL || '3332'
-
-  if (process.env.NODE_ENV === 'testing') {
-    return new ApiGatewayManagementApi({
-      apiVersion: '2018-11-29',
-      endpoint: `http://localhost:${port}/_arc/ws`,
-      region: process.env.AWS_REGION || 'us-west-2',
-    })
-  }
-  return new ApiGatewayManagementApi({
-    apiVersion: '2018-11-29',
-    endpoint: `${ARC_WSS_URL.replace(/$ws/, 'http')}`,
-  })
-}
 
 const typeDefs = `
   type Query {
@@ -183,7 +165,7 @@ const subscriptionServer = makeServer({
   dynamodb: arcTables.db,
   schema,
   tableNames: fetchTableNames(),
-  apiGatewayManagementApi: makeManagementAPI(),
+  apiGatewayManagementApi: ws._api,
   onError: err => {
     console.log('onError', err.message)
   },
