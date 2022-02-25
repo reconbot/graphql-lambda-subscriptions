@@ -350,7 +350,7 @@ Use the [`publish()`](docs/interfaces/SubscriptionServer.md#publish) function on
 
 ```ts
 subscriptionServer.publish({
-  type: 'MY_TOPIC',
+  topic: 'MY_TOPIC',
   payload: {
     message: 'Hey!',
   },
