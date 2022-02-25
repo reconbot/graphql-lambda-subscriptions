@@ -381,7 +381,7 @@ Use the `complete` on your graphql-lambda-subscriptions server to complete activ
 
 ```ts
 subscriptionServer.complete({
-  type: 'MY_TOPIC',
+  topic: 'MY_TOPIC',
   // optional payload
   payload: {
     message: 'Hey!',
