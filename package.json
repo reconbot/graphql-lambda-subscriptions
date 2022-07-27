@@ -35,7 +35,7 @@
   "license": "MIT",
   "dependencies": {
     "debug": "^4.3.2",
-    "streaming-iterables": "^6.0.0"
+    "streaming-iterables": "^7.0.0"
   },
   "peerDependencies": {
     "aws-sdk": ">= 2.0.0",
