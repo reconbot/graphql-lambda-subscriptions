@@ -10,18 +10,15 @@
 - [context](ServerArgs.md#context)
 - [dynamodb](ServerArgs.md#dynamodb)
 - [log](ServerArgs.md#log)
-- [pingpong](ServerArgs.md#pingpong)
-- [schema](ServerArgs.md#schema)
-- [tableNames](ServerArgs.md#tablenames)
-
-### Methods
-
 - [onConnect](ServerArgs.md#onconnect)
 - [onConnectionInit](ServerArgs.md#onconnectioninit)
 - [onDisconnect](ServerArgs.md#ondisconnect)
 - [onError](ServerArgs.md#onerror)
 - [onPing](ServerArgs.md#onping)
 - [onPong](ServerArgs.md#onpong)
+- [pingpong](ServerArgs.md#pingpong)
+- [schema](ServerArgs.md#schema)
+- [tableNames](ServerArgs.md#tablenames)
 
 ## Properties
 
@@ -52,6 +49,135 @@ ___
 • `Optional` **log**: [`LoggerFunction`](../README.md#loggerfunction)
 
 Defaults to debug('graphql-lambda-subscriptions') from https://www.npmjs.com/package/debug
+
+___
+
+### onConnect
+
+• `Optional` **onConnect**: (`e`: { `event`: [`APIGatewayWebSocketEvent`](APIGatewayWebSocketEvent.md)  }) => [`MaybePromise`](../README.md#maybepromise)<`void`\>
+
+#### Type declaration
+
+▸ (`e`): [`MaybePromise`](../README.md#maybepromise)<`void`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `e` | `Object` |
+| `e.event` | [`APIGatewayWebSocketEvent`](APIGatewayWebSocketEvent.md) |
+
+##### Returns
+
+[`MaybePromise`](../README.md#maybepromise)<`void`\>
+
+___
+
+### onConnectionInit
+
+• `Optional` **onConnectionInit**: (`e`: { `event`: [`APIGatewayWebSocketEvent`](APIGatewayWebSocketEvent.md) ; `message`: `ConnectionInitMessage`  }) => [`MaybePromise`](../README.md#maybepromise)<`Record`<`string`, `any`\>\>
+
+#### Type declaration
+
+▸ (`e`): [`MaybePromise`](../README.md#maybepromise)<`Record`<`string`, `any`\>\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `e` | `Object` |
+| `e.event` | [`APIGatewayWebSocketEvent`](APIGatewayWebSocketEvent.md) |
+| `e.message` | `ConnectionInitMessage` |
+
+##### Returns
+
+[`MaybePromise`](../README.md#maybepromise)<`Record`<`string`, `any`\>\>
+
+___
+
+### onDisconnect
+
+• `Optional` **onDisconnect**: (`e`: { `event`: [`APIGatewayWebSocketEvent`](APIGatewayWebSocketEvent.md)  }) => [`MaybePromise`](../README.md#maybepromise)<`void`\>
+
+#### Type declaration
+
+▸ (`e`): [`MaybePromise`](../README.md#maybepromise)<`void`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `e` | `Object` |
+| `e.event` | [`APIGatewayWebSocketEvent`](APIGatewayWebSocketEvent.md) |
+
+##### Returns
+
+[`MaybePromise`](../README.md#maybepromise)<`void`\>
+
+___
+
+### onError
+
+• `Optional` **onError**: (`error`: `any`, `context`: `any`) => [`MaybePromise`](../README.md#maybepromise)<`void`\>
+
+#### Type declaration
+
+▸ (`error`, `context`): [`MaybePromise`](../README.md#maybepromise)<`void`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `error` | `any` |
+| `context` | `any` |
+
+##### Returns
+
+[`MaybePromise`](../README.md#maybepromise)<`void`\>
+
+___
+
+### onPing
+
+• `Optional` **onPing**: (`e`: { `event`: [`APIGatewayWebSocketEvent`](APIGatewayWebSocketEvent.md) ; `message`: `PingMessage`  }) => [`MaybePromise`](../README.md#maybepromise)<`void`\>
+
+#### Type declaration
+
+▸ (`e`): [`MaybePromise`](../README.md#maybepromise)<`void`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `e` | `Object` |
+| `e.event` | [`APIGatewayWebSocketEvent`](APIGatewayWebSocketEvent.md) |
+| `e.message` | `PingMessage` |
+
+##### Returns
+
+[`MaybePromise`](../README.md#maybepromise)<`void`\>
+
+___
+
+### onPong
+
+• `Optional` **onPong**: (`e`: { `event`: [`APIGatewayWebSocketEvent`](APIGatewayWebSocketEvent.md) ; `message`: `PongMessage`  }) => [`MaybePromise`](../README.md#maybepromise)<`void`\>
+
+#### Type declaration
+
+▸ (`e`): [`MaybePromise`](../README.md#maybepromise)<`void`\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `e` | `Object` |
+| `e.event` | [`APIGatewayWebSocketEvent`](APIGatewayWebSocketEvent.md) |
+| `e.message` | `PongMessage` |
+
+##### Returns
+
+[`MaybePromise`](../README.md#maybepromise)<`void`\>
 
 ___
 
@@ -86,108 +212,3 @@ ___
 An optional object or a promise for an object with DDB table names.
 
 Defaults to `{ connections: 'graphql_connections', subscriptions: 'graphql_subscriptions' }`
-
-## Methods
-
-### onConnect
-
-▸ `Optional` **onConnect**(`e`): [`MaybePromise`](../README.md#maybepromise)<`void`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `e` | `Object` |
-| `e.event` | [`APIGatewayWebSocketEvent`](APIGatewayWebSocketEvent.md) |
-
-#### Returns
-
-[`MaybePromise`](../README.md#maybepromise)<`void`\>
-
-___
-
-### onConnectionInit
-
-▸ `Optional` **onConnectionInit**(`e`): [`MaybePromise`](../README.md#maybepromise)<`Record`<`string`, `any`\>\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `e` | `Object` |
-| `e.event` | [`APIGatewayWebSocketEvent`](APIGatewayWebSocketEvent.md) |
-| `e.message` | `ConnectionInitMessage` |
-
-#### Returns
-
-[`MaybePromise`](../README.md#maybepromise)<`Record`<`string`, `any`\>\>
-
-___
-
-### onDisconnect
-
-▸ `Optional` **onDisconnect**(`e`): [`MaybePromise`](../README.md#maybepromise)<`void`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `e` | `Object` |
-| `e.event` | [`APIGatewayWebSocketEvent`](APIGatewayWebSocketEvent.md) |
-
-#### Returns
-
-[`MaybePromise`](../README.md#maybepromise)<`void`\>
-
-___
-
-### onError
-
-▸ `Optional` **onError**(`error`, `context`): [`MaybePromise`](../README.md#maybepromise)<`void`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `error` | `any` |
-| `context` | `any` |
-
-#### Returns
-
-[`MaybePromise`](../README.md#maybepromise)<`void`\>
-
-___
-
-### onPing
-
-▸ `Optional` **onPing**(`e`): [`MaybePromise`](../README.md#maybepromise)<`void`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `e` | `Object` |
-| `e.event` | [`APIGatewayWebSocketEvent`](APIGatewayWebSocketEvent.md) |
-| `e.message` | `PingMessage` |
-
-#### Returns
-
-[`MaybePromise`](../README.md#maybepromise)<`void`\>
-
-___
-
-### onPong
-
-▸ `Optional` **onPong**(`e`): [`MaybePromise`](../README.md#maybepromise)<`void`\>
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `e` | `Object` |
-| `e.event` | [`APIGatewayWebSocketEvent`](APIGatewayWebSocketEvent.md) |
-| `e.message` | `PongMessage` |
-
-#### Returns
-
-[`MaybePromise`](../README.md#maybepromise)<`void`\>

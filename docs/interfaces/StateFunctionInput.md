@@ -40,4 +40,4 @@ ___
 
 ### state
 
-• **state**: ``"PING"`` \| ``"REVIEW"`` \| ``"ABORT"``
+• **state**: ``"ABORT"`` \| ``"PING"`` \| ``"REVIEW"``

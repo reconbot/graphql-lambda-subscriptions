@@ -34,7 +34,7 @@ export interface ServerArgs {
     subscriptions?: string
   }>
   /**
-   * Makes the context object for all operations defaults to { connectionInitPayload, connectionId }
+   * Makes the context object for all operations defaults to \{ connectionInitPayload, connectionId \}
    */
   context?: ((arg: { connectionInitPayload: any, connectionId: string, publish: SubscriptionServer['publish'], complete: SubscriptionServer['complete'] }) => MaybePromise<object>) | object
   /**

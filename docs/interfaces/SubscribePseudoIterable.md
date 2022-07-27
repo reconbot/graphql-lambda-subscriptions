@@ -30,13 +30,10 @@
 ### Properties
 
 - [filter](SubscribePseudoIterable.md#filter)
-- [topic](SubscribePseudoIterable.md#topic)
-
-### Methods
-
 - [onAfterSubscribe](SubscribePseudoIterable.md#onaftersubscribe)
 - [onComplete](SubscribePseudoIterable.md#oncomplete)
 - [onSubscribe](SubscribePseudoIterable.md#onsubscribe)
+- [topic](SubscribePseudoIterable.md#topic)
 
 ## Properties
 
@@ -46,23 +43,21 @@
 
 ___
 
-### topic
-
-• **topic**: `string`
-
-## Methods
-
 ### onAfterSubscribe
 
-▸ `Optional` **onAfterSubscribe**(...`args`): [`MaybePromise`](../README.md#maybepromise)<`void`\>
+• `Optional` **onAfterSubscribe**: (...`args`: `TSubscribeArgs`) => [`MaybePromise`](../README.md#maybepromise)<`void`\>
 
-#### Parameters
+#### Type declaration
+
+▸ (...`args`): [`MaybePromise`](../README.md#maybepromise)<`void`\>
+
+##### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `...args` | `TSubscribeArgs` |
 
-#### Returns
+##### Returns
 
 [`MaybePromise`](../README.md#maybepromise)<`void`\>
 
@@ -70,15 +65,19 @@ ___
 
 ### onComplete
 
-▸ `Optional` **onComplete**(...`args`): [`MaybePromise`](../README.md#maybepromise)<`void`\>
+• `Optional` **onComplete**: (...`args`: `TSubscribeArgs`) => [`MaybePromise`](../README.md#maybepromise)<`void`\>
 
-#### Parameters
+#### Type declaration
+
+▸ (...`args`): [`MaybePromise`](../README.md#maybepromise)<`void`\>
+
+##### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `...args` | `TSubscribeArgs` |
 
-#### Returns
+##### Returns
 
 [`MaybePromise`](../README.md#maybepromise)<`void`\>
 
@@ -86,14 +85,24 @@ ___
 
 ### onSubscribe
 
-▸ `Optional` **onSubscribe**(...`args`): [`MaybePromise`](../README.md#maybepromise)<`void` \| `GraphQLError`[]\>
+• `Optional` **onSubscribe**: (...`args`: `TSubscribeArgs`) => [`MaybePromise`](../README.md#maybepromise)<`void` \| `GraphQLError`[]\>
 
-#### Parameters
+#### Type declaration
+
+▸ (...`args`): [`MaybePromise`](../README.md#maybepromise)<`void` \| `GraphQLError`[]\>
+
+##### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `...args` | `TSubscribeArgs` |
 
-#### Returns
+##### Returns
 
 [`MaybePromise`](../README.md#maybepromise)<`void` \| `GraphQLError`[]\>
+
+___
+
+### topic
+
+• **topic**: `string`
