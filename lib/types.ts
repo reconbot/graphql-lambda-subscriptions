@@ -195,8 +195,8 @@ export type MessageHandler<T> = (arg: { server: ServerClosure, event: APIGateway
   Matches the ApiGatewayManagementApi class from aws-sdk but only provides the methods we use
 */
 export interface ApiGatewayManagementApiSubset {
-  postToConnection(input: { ConnectionId: string, Data: string }): { promise: () => Promise<void> }
-  deleteConnection(input: { ConnectionId: string }): { promise: () => Promise<void> }
+  postToConnection(input: { ConnectionId: string, Data: string }): { promise: () => Promise<any> }
+  deleteConnection(input: { ConnectionId: string }): { promise: () => Promise<any> }
 }
 
 
