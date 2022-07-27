@@ -3,9 +3,6 @@ basic-events
 
 @ws
 
-@static
-folder dist
-
 @tables
 Connection
   id *String
@@ -14,8 +11,7 @@ Subscription
   id *String
   ttl TTL
 
-@indexes
-
+@tables-indexes
 Subscription
   connectionId *String
   name ConnectionIndex

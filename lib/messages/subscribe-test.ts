@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { assert } from 'chai'
-import { tables } from '@architect/sandbox'
+import { start, end } from '@architect/sandbox'
 import { subscribe } from './subscribe'
 import { mockServerContext } from '../test/mockServer'
 import { connection_init } from './connection_init'
 import { collect } from 'streaming-iterables'
 import { subscribe as pubsubSubscribe } from '../pubsub/subscribe'
 import { makeExecutableSchema } from '@graphql-tools/schema'
+import { join } from 'path'
 
 const connectionId = '7rWmyMbMr'
 const ConnectionId = connectionId
@@ -14,11 +15,11 @@ const connectionInitEvent: any = { requestContext: { connectedAt: 1628905962601,
 
 describe('messages/subscribe', () => {
   beforeEach(async () => {
-    await tables.start({ cwd: './mocks/arc-basic-events', quiet: true })
+    await start({ cwd: join(process.cwd(),'./mocks/arc-basic-events'), quiet: true })
   })
 
   afterEach(async () => {
-    await tables.end()
+    await end()
   })
 
   it('executes a query/mutation', async () => {

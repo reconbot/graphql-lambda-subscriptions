@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-require('esbuild-register')
-const { makeExecutableSchema } = require('@graphql-tools/schema')
-const { tables: arcTables, ws } = require('@architect/functions')
-const { makeServer, subscribe } = require('../../../lib')
-const { GraphQLError } = require('graphql')
+import { makeExecutableSchema } from '@graphql-tools/schema'
+import { tables as arcTables, ws } from '@architect/functions'
+import { makeServer, subscribe } from '../../../lib'
+import { GraphQLError } from 'graphql'
 
 const typeDefs = `
   type Query {
@@ -148,7 +146,7 @@ const schema = makeExecutableSchema({
 const fetchTableNames = async () => {
   const tables = await arcTables()
 
-  const ensureName = (table) => {
+  const ensureName = (table: string) => {
     const actualTableName = tables.name(table)
     if (!actualTableName) {
       throw new Error(`No table found for ${table}`)
@@ -163,7 +161,7 @@ const fetchTableNames = async () => {
 }
 
 const subscriptionServer = makeServer({
-  dynamodb: arcTables.db,
+  dynamodb: arcTables().then(tables => tables._db),
   schema,
   tableNames: fetchTableNames(),
   apiGatewayManagementApi: ws._api,
@@ -172,4 +170,4 @@ const subscriptionServer = makeServer({
   },
 })
 
-module.exports = { subscriptionServer }
+export { subscriptionServer }

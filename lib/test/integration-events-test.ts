@@ -1,19 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { assert } from 'chai'
-import { start as sandBoxStart, end as sandBoxStop } from '@architect/sandbox'
+import { start as sandboxStart, end as sandboxEnd } from '@architect/sandbox'
 import { collect, map } from 'streaming-iterables'
 import { executeDoubleQuery, executeQuery, executeToComplete, executeToDisconnect } from './execute-helper'
 import { startGqlWSServer } from './graphql-ws-schema'
+import { join } from 'path'
 
 describe('Events', () => {
   before(async () => {
-    await sandBoxStart({ cwd: './mocks/arc-basic-events', quiet: true })
+    await sandboxStart({ cwd: join(process.cwd(), './mocks/arc-basic-events'), quiet: true })
   })
 
   after(async () => {
-    await new Promise(resolve => setTimeout(resolve, 100)) // pending ddb writes need to finish
-    await sandBoxStop()
+    // pending ddb writes need to finish, this is annoying
+    await new Promise(resolve => setTimeout(resolve, 100))
+    await sandboxEnd()
   })
+
   describe('Basic Events', () => {
     it('queries', async () => {
       const { url, stop } = await startGqlWSServer()

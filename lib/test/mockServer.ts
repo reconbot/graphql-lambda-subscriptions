@@ -47,7 +47,7 @@ export const mockServerArgs = async (args: Partial<ServerArgs> = {}): Promise<Se
   const tables = await arcTables()
 
   return {
-    dynamodb: arcTables.db,
+    dynamodb: tables._db,
     schema,
     tableNames: {
       connections: ensureName(tables, 'Connection'),

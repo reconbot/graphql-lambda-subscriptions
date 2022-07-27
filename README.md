@@ -145,10 +145,10 @@ Subscription
 ```
 
 ```ts
-import { tables } from '@architect/functions'
+import { tables as arcTables } from '@architect/functions'
 
 const fetchTableNames = async () => {
-  const tables = await tables()
+  const tables = await arcTables()
 
   const ensureName = (table) => {
     const actualTableName = tables.name(table)
@@ -165,7 +165,7 @@ const fetchTableNames = async () => {
 }
 
 const subscriptionServer = makeServer({
-  dynamodb: tables.db,
+  dynamodb: tables._db,
   schema,
   tableNames: fetchTableNames(),
 })
