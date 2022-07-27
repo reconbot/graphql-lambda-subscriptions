@@ -28,7 +28,7 @@
 
 | Name | Type |
 | :------ | :------ |
-| `promise` | () => `Promise`<`void`\> |
+| `promise` | () => `Promise`<`any`\> |
 
 ___
 
@@ -50,4 +50,4 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `promise` | () => `Promise`<`void`\> |
+| `promise` | () => `Promise`<`any`\> |

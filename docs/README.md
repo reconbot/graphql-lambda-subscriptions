@@ -16,7 +16,7 @@ graphql-lambda-subscriptions
 - [SubscribePseudoIterable](interfaces/SubscribePseudoIterable.md)
 - [SubscriptionServer](interfaces/SubscriptionServer.md)
 
-### Type aliases
+### Type Aliases
 
 - [LoggerFunction](README.md#loggerfunction)
 - [MaybePromise](README.md#maybepromise)
@@ -29,7 +29,7 @@ graphql-lambda-subscriptions
 - [makeServer](README.md#makeserver)
 - [subscribe](README.md#subscribe)
 
-## Type aliases
+## Type Aliases
 
 ### LoggerFunction
 
@@ -109,7 +109,7 @@ ___
 
 ### makeServer
 
-▸ `Const` **makeServer**(`opts`): [`SubscriptionServer`](interfaces/SubscriptionServer.md)
+▸ **makeServer**(`opts`): [`SubscriptionServer`](interfaces/SubscriptionServer.md)
 
 #### Parameters
 
@@ -125,7 +125,7 @@ ___
 
 ### subscribe
 
-▸ `Const` **subscribe**<`T`, `TRoot`, `TArgs`, `TContext`\>(`topic`, `options?`): [`SubscribePseudoIterable`](interfaces/SubscribePseudoIterable.md)<`T`, [`SubscribeArgs`](README.md#subscribeargs)<`TRoot`, `TArgs`, `TContext`\>\>
+▸ **subscribe**<`T`, `TRoot`, `TArgs`, `TContext`\>(`topic`, `options?`): [`SubscribePseudoIterable`](interfaces/SubscribePseudoIterable.md)<`T`, [`SubscribeArgs`](README.md#subscribeargs)<`TRoot`, `TArgs`, `TContext`\>\>
 
 Creates subscribe handler for use in your graphql schema.
 
