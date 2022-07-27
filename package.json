@@ -84,5 +84,10 @@
       "./lib/test/setup"
     ],
     "spec": "lib/**/*-test.ts"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ]
   }
 }
