@@ -8,7 +8,7 @@ export default {
     }),
   ],
   output: [
-    { format: 'esm', file: './dist/index-esm.mjs' },
+    // { format: 'esm', file: './dist/index-esm.mjs' },
     { format: 'cjs', file: './dist/index.js' },
   ],
   external: [
