@@ -72,7 +72,7 @@
     "rollup-plugin-node-resolve": "5.2.0",
     "semantic-release": "19.0.5",
     "typedoc": "0.23.11",
-    "typedoc-plugin-markdown": "3.13.4",
+    "typedoc-plugin-markdown": "3.13.5",
     "typescript": "4.7.4",
     "ws": "8.8.1"
   },
