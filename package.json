@@ -45,7 +45,7 @@
     "@architect/functions": "github:architect/functions#reconbot/expose-websocket-api",
     "@architect/sandbox": "5.3.4",
     "@graphql-tools/schema": "9.0.4",
-    "@microsoft/api-extractor": "7.31.1",
+    "@microsoft/api-extractor": "7.31.2",
     "@types/architect__sandbox": "3.3.3",
     "@types/aws-lambda": "8.10.104",
     "@types/chai": "4.3.3",
