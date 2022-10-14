@@ -60,7 +60,7 @@
     "aws-sdk": "2.1232.0",
     "chai": "4.3.6",
     "chai-subset": "1.6.0",
-    "esbuild": "0.15.10",
+    "esbuild": "0.15.11",
     "esbuild-register": "3.3.3",
     "eslint": "8.25.0",
     "eslint-plugin-mocha-no-only": "1.1.1",
