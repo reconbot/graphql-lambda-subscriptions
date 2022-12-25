@@ -105,8 +105,10 @@ export interface SubscriptionServer {
    * Publish an event to all relevant subscriptions. This might take some time depending on how many subscriptions there are.
    *
    * The payload if present will be used to match against any filters the subscriptions might have.
+   * 
+   * filterNested - If to applay filter nested objects, default: true.
    */
-  publish: (event: { topic: string, payload: Record<string, any>}) => Promise<void>
+  publish: (event: { topic: string, payload: Record<string, any>}, filterNested?: boolean) => Promise<void>
   /**
    * Send a complete message and end all relevant subscriptions. This might take some time depending on how many subscriptions there are.
    *
