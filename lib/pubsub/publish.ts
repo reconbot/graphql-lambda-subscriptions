@@ -5,10 +5,10 @@ import { postToConnection } from '../utils/postToConnection'
 import { buildContext } from '../utils/buildContext'
 import { getFilteredSubs } from './getFilteredSubs'
 
-export const publish = (serverPromise: Promise<ServerClosure> | ServerClosure): SubscriptionServer['publish'] => async event => {
+export const publish = (serverPromise: Promise<ServerClosure> | ServerClosure): SubscriptionServer['publish'] => async (event: { topic: string, payload?: Record<string, any> }, filterNested = true) => {
   const server = await serverPromise
   server.log('pubsub:publish', { event })
-  const subscriptions = await getFilteredSubs({ server, event })
+  const subscriptions = await getFilteredSubs({ server, event, filterNested })
   server.log('pubsub:publish', { subscriptions: subscriptions.map(({ connectionId, filter, subscription }) => ({ connectionId, filter, subscription }) ) })
 
   const iters = subscriptions.map(async (sub) => {

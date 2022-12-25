@@ -2,7 +2,7 @@
 import { collect } from 'streaming-iterables'
 import { ServerClosure, Subscription } from '../types'
 
-export const getFilteredSubs = async ({ server, event }: { server: Omit<ServerClosure, 'gateway'>, event: { topic: string, payload?: Record<string, any> } }): Promise<Subscription[]> => {
+export const getFilteredSubs = async ({ server, event, filterNested }: { server: Omit<ServerClosure, 'gateway'>, event: { topic: string, payload?: Record<string, any> }, filterNested?: boolean }): Promise<Subscription[]> => {
   if (!event.payload || Object.keys(event.payload).length === 0) {
     server.log('getFilteredSubs', { event })
 
@@ -15,7 +15,7 @@ export const getFilteredSubs = async ({ server, event }: { server: Omit<ServerCl
 
     return await collect(iterator)
   }
-  const flattenPayload = collapseKeys(event.payload)
+  const flattenPayload = collapseKeys(event.payload, filterNested)
 
   const filterExpressions: string[] = []
   const expressionAttributeValues: { [key: string]: string | number | boolean } = {}
@@ -51,6 +51,7 @@ export const getFilteredSubs = async ({ server, event }: { server: Omit<ServerCl
 
 export const collapseKeys = (
   obj: Record<string, any>,
+  filterNested = true,
 ): Record<string, number | string | boolean> => {
   const record = {}
   for (const [k1, v1] of Object.entries(obj)) {
@@ -59,7 +60,7 @@ export const collapseKeys = (
       continue
     }
 
-    if (v1 && typeof v1 === 'object') {
+    if (filterNested && v1 && typeof v1 === 'object') {
       const next = {}
 
       for (const [k2, v2] of Object.entries(v1)) {
