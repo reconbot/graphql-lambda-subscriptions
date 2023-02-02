@@ -43,7 +43,7 @@
   },
   "devDependencies": {
     "@architect/functions": "github:architect/functions#reconbot/expose-websocket-api",
-    "@architect/sandbox": "5.4.2",
+    "@architect/sandbox": "5.5.0",
     "@graphql-tools/schema": "9.0.15",
     "@microsoft/api-extractor": "7.34.2",
     "@types/architect__sandbox": "3.3.3",
