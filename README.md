@@ -2,7 +2,7 @@
 
 [![Release](https://github.com/reconbot/graphql-lambda-subscriptions/actions/workflows/test.yml/badge.svg)](https://github.com/reconbot/graphql-lambda-subscriptions/actions/workflows/test.yml)
 
-Amazon Lambda Powered GraphQL Subscriptions. This is an Amazon Lambda Serverless equivalent to [`graphql-ws`](https://github.com/enisdenjo/graphql-ws). It follows the [`graphql-ws prototcol`](https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md). It is tested with the [Architect Sandbox](https://arc.codes/docs/en/reference/cli/sandbox) against `graphql-ws` directly and run in production today. For many applications `graphql-lambda-subscriptions` should do what `graphql-ws` does for you today without having to run a server. This started as fork of `subscriptionless` another library with similar goals.
+Amazon Lambda Powered GraphQL Subscriptions. This is an Amazon Lambda Serverless equivalent to [`graphql-ws`](https://github.com/enisdenjo/graphql-ws). It follows the [`graphql-transport-ws prototcol`](https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md). It is tested with the [Architect Sandbox](https://arc.codes/docs/en/reference/cli/sandbox) against `graphql-ws` directly and run in production today. For many applications `graphql-lambda-subscriptions` should do what `graphql-ws` does for you today without having to run a server. This started as fork of `subscriptionless` another library with similar goals.
 
 As `subscriptionless`'s tagline goes;
 
