@@ -70,7 +70,7 @@
     "mocha": "10.2.0",
     "rollup": "4.1.5",
     "rollup-plugin-node-resolve": "5.2.0",
-    "semantic-release": "22.0.5",
+    "semantic-release": "22.0.6",
     "typedoc": "0.25.3",
     "typedoc-plugin-markdown": "3.16.0",
     "typescript": "4.7.4",
