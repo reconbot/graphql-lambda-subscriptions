@@ -62,7 +62,7 @@
     "chai-subset": "1.6.0",
     "esbuild": "0.19.5",
     "esbuild-register": "3.5.0",
-    "eslint": "8.52.0",
+    "eslint": "8.53.0",
     "eslint-plugin-mocha-no-only": "1.1.1",
     "graphql": "16.8.1",
     "graphql-ws": "5.14.2",
