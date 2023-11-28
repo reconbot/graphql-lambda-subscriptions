@@ -1,5 +1,6 @@
 import resolve from 'rollup-plugin-node-resolve'
 
+
 export default {
   input: './dist-ts/index.js',
   plugins: [
@@ -13,7 +14,9 @@ export default {
   ],
   external: [
     // peer deps
-    'aws-sdk',
+    '@aws-sdk/lib-dynamodb',
+    '@aws-sdk/client-dynamodb',
+    '@aws-sdk/client-apigatewaymanagementapi',
     'graphql',
     'graphql/execution/execute',
     'graphql/execution/values',

@@ -3,8 +3,9 @@
 import { ConnectionInitMessage, PingMessage, PongMessage } from 'graphql-ws'
 import { APIGatewayEventRequestContext, APIGatewayProxyEvent } from 'aws-lambda'
 import { GraphQLError, GraphQLResolveInfo, GraphQLSchema } from 'graphql'
-import { DynamoDB } from 'aws-sdk'
+import { DynamoDB } from '@aws-sdk/client-dynamodb'
 import { DDBClient } from './ddb/DDB'
+import { ApiGatewayManagementApi } from '@aws-sdk/client-apigatewaymanagementapi'
 
 export interface ServerArgs {
   /**
@@ -84,7 +85,7 @@ export type ServerClosure = {
     connection: DDBClient<Connection, {id: string }>
   }
   log: LoggerFunction
-  apiGatewayManagementApi?: ApiGatewayManagementApiSubset
+  apiGatewayManagementApi?: ApiGatewayManagementApi
   pingpong?: {
     machine: string
     delay: number
@@ -193,12 +194,7 @@ export interface PubSubEvent {
 
 export type MessageHandler<T> = (arg: { server: ServerClosure, event: APIGatewayWebSocketEvent, message: T }) => Promise<void>
 
-/*
-  Matches the ApiGatewayManagementApi class from aws-sdk but only provides the methods we use
-*/
-export interface ApiGatewayManagementApiSubset {
-  postToConnection(input: { ConnectionId: string, Data: string }): { promise: () => Promise<any> }
-  deleteConnection(input: { ConnectionId: string }): { promise: () => Promise<any> }
+export interface ApiGatewayManagementApiSubset extends ApiGatewayManagementApi {
 }
 
 

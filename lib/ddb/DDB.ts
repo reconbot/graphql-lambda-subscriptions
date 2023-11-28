@@ -1,12 +1,13 @@
-import { DynamoDB } from 'aws-sdk'
+import { DynamoDBDocument, PutCommandInput, QueryCommandInput } from '@aws-sdk/lib-dynamodb'
+import { DynamoDB } from '@aws-sdk/client-dynamodb'
 import { LoggerFunction, DDBType } from '../types'
 
 export interface DDBClient<T extends DDBType, TKey> {
   get: (Key: TKey) => Promise<T | null>
-  put: (obj: T, putOptions?: Partial<DynamoDB.DocumentClient.PutItemInput>) => Promise<T>
+  put: (obj: T, putOptions?: Partial<PutCommandInput>) => Promise<T>
   update: (Key: TKey, obj: Partial<T>) => Promise<T>
   delete: (Key: TKey) => Promise<T>
-  query: (options: Omit<DynamoDB.DocumentClient.QueryInput, 'TableName' | 'Select'>) => AsyncGenerator<T, void, undefined>
+  query: (options: Omit<QueryCommandInput, 'TableName' | 'Select'>) => AsyncGenerator<T, void, undefined>
 }
 
 export const DDB = <T extends DDBType, TKey>({
@@ -18,7 +19,7 @@ export const DDB = <T extends DDBType, TKey>({
   tableName: string
   log: LoggerFunction
 }): DDBClient<T, TKey> => {
-  const documentClient = new DynamoDB.DocumentClient({ service: dynamodb })
+  const documentClient = DynamoDBDocument.from(dynamodb)
 
   const get = async (Key: TKey): Promise<null | T> => {
     log('get', { tableName: tableName, Key })
@@ -26,7 +27,7 @@ export const DDB = <T extends DDBType, TKey>({
       const { Item } = await documentClient.get({
         TableName: tableName,
         Key,
-      }).promise()
+      })
       log('get:result', { Item })
       return (Item as T) ?? null
     } catch (e) {
@@ -35,7 +36,7 @@ export const DDB = <T extends DDBType, TKey>({
     }
   }
 
-  const put = async (Item: T, putOptions?: Partial<DynamoDB.DocumentClient.PutItemInput>): Promise<T> => {
+  const put = async (Item: T, putOptions?: Partial<PutCommandInput>): Promise<T> => {
     log('put', { tableName: tableName, Item })
     try {
       const { Attributes } = await documentClient.put({
@@ -43,7 +44,7 @@ export const DDB = <T extends DDBType, TKey>({
         Item,
         ReturnValues: 'ALL_OLD',
         ...putOptions,
-      }).promise()
+      })
       return Attributes as T
     } catch (e) {
       log('put:error', e)
@@ -55,15 +56,16 @@ export const DDB = <T extends DDBType, TKey>({
     log('update', { tableName: tableName, Key, obj })
     try {
       const AttributeUpdates = Object.entries(obj)
-        .map(([key, Value]) => ({ [key]: { Value, Action: 'PUT' } }))
+        .map(([key, Value]) => ({ [key]: { Value } }))
         .reduce((memo, val) => ({ ...memo, ...val }))
-
+      
       const { Attributes } = await documentClient.update({
         TableName: tableName,
         Key,
-        AttributeUpdates,
         ReturnValues: 'ALL_NEW',
-      }).promise()
+        AttributeUpdates,
+      })
+      
       return Attributes as T
     } catch (e) {
       log('update:error', e)
@@ -78,7 +80,7 @@ export const DDB = <T extends DDBType, TKey>({
         TableName: tableName,
         Key,
         ReturnValues: 'ALL_OLD',
-      }).promise()
+      })
       return Attributes as T
     } catch (e) {
       log('delete:error', e)
@@ -86,14 +88,14 @@ export const DDB = <T extends DDBType, TKey>({
     }
   }
 
-  const queryOnce = async (options: Omit<DynamoDB.DocumentClient.QueryInput, 'TableName' | 'Select'>) => {
+  const queryOnce = async (options: Omit<QueryCommandInput, 'TableName' | 'Select'>) => {
     log('queryOnce', { tableName: tableName, options })
     try {
       const response = await documentClient.query({
         TableName: tableName,
         Select: 'ALL_ATTRIBUTES',
         ...options,
-      }).promise()
+      })
 
       const { Items, LastEvaluatedKey, Count } = response
       return {
@@ -107,7 +109,7 @@ export const DDB = <T extends DDBType, TKey>({
     }
   }
 
-  async function* query(options: Omit<DynamoDB.DocumentClient.QueryInput, 'TableName' | 'Select'>) {
+  async function* query(options: Omit<QueryCommandInput, 'TableName' | 'Select'>) {
     log('query', { tableName: tableName, options })
     try {
       const results = await queryOnce(options)

@@ -1,31 +1,31 @@
-import { StepFunctions } from 'aws-sdk'
-import { ConnectionInitMessage, MessageType } from 'graphql-ws'
-import { StateFunctionInput, MessageHandler } from '../types'
-import { postToConnection } from '../utils/postToConnection'
-import { deleteConnection } from '../utils/deleteConnection'
-import { defaultTTL } from '../utils/defaultTTL'
+import { ConnectionInitMessage, MessageType } from 'graphql-ws';
+import { MessageHandler } from '../types';
+import { postToConnection } from '../utils/postToConnection';
+import { deleteConnection } from '../utils/deleteConnection';
+import { defaultTTL } from '../utils/defaultTTL';
 
 /** Handler function for 'connection_init' message. */
 export const connection_init: MessageHandler<ConnectionInitMessage> =
   async ({ server, event, message }) => {
     try {
-      const payload = await server.onConnectionInit?.({ event, message }) ?? message.payload ?? {}
+      const payload = (await server.onConnectionInit?.({ event, message })) ?? message.payload ?? {}
 
       if (server.pingpong) {
-        await new StepFunctions()
-          .startExecution({
-            stateMachineArn: server.pingpong.machine,
-            name: event.requestContext.connectionId,
-            input: JSON.stringify({
-              connectionId: event.requestContext.connectionId,
-              domainName: event.requestContext.domainName,
-              stage: event.requestContext.stage,
-              state: 'PING',
-              choice: 'WAIT',
-              seconds: server.pingpong.delay,
-            } as StateFunctionInput),
-          })
-          .promise()
+        console.error('Missing implementation for pingpong');
+        // await new StepFunctions()
+        //   .startExecution({
+        //     stateMachineArn: server.pingpong.machine,
+        //     name: event.requestContext.connectionId,
+        //     input: JSON.stringify({
+        //       connectionId: event.requestContext.connectionId,
+        //       domainName: event.requestContext.domainName,
+        //       stage: event.requestContext.stage,
+        //       state: 'PING',
+        //       choice: 'WAIT',
+        //       seconds: server.pingpong.delay,
+        //     } as StateFunctionInput),
+        //   })
+        //   .promise()
       }
 
       // Write to persistence

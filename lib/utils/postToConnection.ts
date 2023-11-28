@@ -1,4 +1,4 @@
-import { ApiGatewayManagementApi } from 'aws-sdk'
+import { ApiGatewayManagementApi } from '@aws-sdk/client-apigatewaymanagementapi'
 import {
   ConnectionAckMessage,
   NextMessage,
@@ -27,7 +27,13 @@ export const postToConnection = (server: ServerClosure) =>
 
     const api = server.apiGatewayManagementApi ??
       new ApiGatewayManagementApi({
+        // The key apiVersion is no longer supported in v3, and can be removed.
+        // @deprecated The client uses the "latest" apiVersion.
         apiVersion: 'latest',
+
+        // The transformation for endpoint is not implemented.
+        // Refer to UPGRADING.md on aws-sdk-js-v3 for changes needed.
+        // Please create/upvote feature request on aws-sdk-js-codemod for endpoint.
         endpoint: `${domainName}/${stage}`,
       })
 
@@ -36,5 +42,4 @@ export const postToConnection = (server: ServerClosure) =>
         ConnectionId,
         Data: JSON.stringify(message),
       })
-      .promise()
   }
