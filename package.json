@@ -58,7 +58,7 @@
     "@typescript-eslint/parser": "6.16.0",
     "aggregate-error": "5.0.0",
     "aws-sdk": "2.1526.0",
-    "chai": "4.3.10",
+    "chai": "5.0.0",
     "chai-subset": "1.6.0",
     "esbuild": "0.19.10",
     "esbuild-register": "3.5.0",
