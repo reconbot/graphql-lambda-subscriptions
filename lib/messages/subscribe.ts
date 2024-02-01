@@ -121,7 +121,9 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
         '#id': 'id',
       },
       ExpressionAttributeValues: {
-        ':id': { S:subscriptionId },
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+        ':id': subscriptionId,
       },
     })
   } catch (error) {

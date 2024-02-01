@@ -48,7 +48,7 @@ export const mockServerArgs = async (args: Partial<ServerArgs> = {}): Promise<Se
   const tables = await arcTables()
 
   return {
-    dynamodb: tables._db as any as DynamoDBClient,
+    dynamodb: tables._db as unknown as DynamoDBClient,
     schema,
     tableNames: {
       connections: ensureName(tables, 'Connection'),

@@ -1,16 +1,17 @@
-import { DynamoDBClient, PutItemInput, QueryInput } from '@aws-sdk/client-dynamodb'
+import { AttributeAction, DynamoDBClient, PutItemCommandInput, QueryCommandInput } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb'
+import { NativeAttributeValue } from '@aws-sdk/util-dynamodb'
 import { LoggerFunction, DDBType } from '../types'
 
-export interface DDBClient<T extends DDBType, TKey extends Record<string, any> | undefined> {
+export interface DDBClient<T extends DDBType, TKey extends Record<string, NativeAttributeValue> | undefined> {
   get: (Key: TKey) => Promise<T | null>
-  put: (obj: T, putOptions?: Partial<PutItemInput>) => Promise<T>
+  put: (obj: T, putOptions?: Partial<PutItemCommandInput>) => Promise<T>
   update: (Key: TKey, obj: Partial<T>) => Promise<T>
   delete: (Key: TKey) => Promise<T>
-  query: (options: Omit<QueryInput, 'TableName' | 'Select'>) => AsyncGenerator<T, void, undefined>
+  query: (options: Omit<QueryCommandInput, 'TableName' | 'Select'>) => AsyncGenerator<T, void, undefined>
 }
 
-export const DDB = <T extends DDBType, TKey extends Record<string, any> | undefined>({
+export const DDB = <T extends DDBType, TKey extends Record<string, NativeAttributeValue> | undefined>({
   dynamodb,
   tableName,
   log,
@@ -36,7 +37,7 @@ export const DDB = <T extends DDBType, TKey extends Record<string, any> | undefi
     }
   }
 
-  const put = async (Item: T, putOptions?: Partial<PutItemInput>): Promise<T> => {
+  const put = async (Item: T, putOptions?: Partial<PutItemCommandInput>): Promise<T> => {
     log('put', { tableName: tableName, Item })
     try {
       const { Attributes } = await documentClient.put({
@@ -56,7 +57,7 @@ export const DDB = <T extends DDBType, TKey extends Record<string, any> | undefi
     log('update', { tableName: tableName, Key, obj })
     try {
       const AttributeUpdates = Object.entries(obj)
-        .map(([key, Value]) => ({ [key]: { Value, Action: 'PUT' } }))
+        .map(([key, Value]) => ({ [key]: { Value, Action: AttributeAction.PUT } }))
         .reduce((memo, val) => ({ ...memo, ...val }))
 
       const { Attributes } = await documentClient.update({
@@ -87,7 +88,7 @@ export const DDB = <T extends DDBType, TKey extends Record<string, any> | undefi
     }
   }
 
-  const queryOnce = async (options: Omit<QueryInput, 'TableName' | 'Select'>) => {
+  const queryOnce = async (options: Omit<QueryCommandInput, 'TableName' | 'Select'>) => {
     log('queryOnce', { tableName: tableName, options })
     try {
       const response = await documentClient.query({
@@ -108,7 +109,7 @@ export const DDB = <T extends DDBType, TKey extends Record<string, any> | undefi
     }
   }
 
-  async function* query(options: Omit<QueryInput, 'TableName' | 'Select'>) {
+  async function* query(options: Omit<QueryCommandInput, 'TableName' | 'Select'>) {
     log('query', { tableName: tableName, options })
     try {
       const results = await queryOnce(options)

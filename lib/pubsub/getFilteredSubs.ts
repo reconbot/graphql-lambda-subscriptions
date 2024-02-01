@@ -9,6 +9,8 @@ export const getFilteredSubs = async ({ server, event }: { server: Omit<ServerCl
     const iterator = server.models.subscription.query({
       IndexName: 'TopicIndex',
       ExpressionAttributeNames: { '#a': 'topic' },
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       ExpressionAttributeValues: { ':1': event.topic },
       KeyConditionExpression: '#a = :1',
     })
@@ -39,7 +41,9 @@ export const getFilteredSubs = async ({ server, event }: { server: Omit<ServerCl
       ...expressionAttributeNames,
     },
     ExpressionAttributeValues: {
-      ':hashKey': event.topic,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      ':hashKey': event.topic ,
       ...expressionAttributeValues,
     },
     KeyConditionExpression: '#hashKey = :hashKey',

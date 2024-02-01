@@ -8,7 +8,6 @@ import {
   PongMessage,
 } from 'graphql-ws'
 import { ServerClosure } from '../types'
-import { fromUtf8 } from '@aws-sdk/util-utf8-browser'
 type GraphqlWSMessages = ConnectionAckMessage | NextMessage | CompleteMessage | ErrorMessage | PingMessage | PongMessage
 
 export const postToConnection = (server: ServerClosure) =>
@@ -34,6 +33,6 @@ export const postToConnection = (server: ServerClosure) =>
     await api
       .send(new PostToConnectionCommand({
         ConnectionId,
-        Data: fromUtf8(JSON.stringify(message)),
+        Data: JSON.stringify(message),
       }))
   }

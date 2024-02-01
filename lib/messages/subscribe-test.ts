@@ -9,7 +9,6 @@ import { subscribe as pubsubSubscribe } from '../pubsub/subscribe'
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { join } from 'path'
 import { DeleteConnectionCommand, PostToConnectionCommand } from '@aws-sdk/client-apigatewaymanagementapi'
-import { toUtf8 } from '@aws-sdk/util-utf8-browser'
 
 const connectionId = '7rWmyMbMr'
 const ConnectionId = connectionId
@@ -29,7 +28,7 @@ describe('messages/subscribe', () => {
     const state: { delete: { ConnectionId: string }[], post: { ConnectionId: string, Data: string }[] } = { post: [], delete: [] }
     const server = await mockServerContext({
       apiGatewayManagementApi: {
-        send: async (command: PostToConnectionCommand) => { command.input.Data && state.post.push({ ConnectionId: command.input.ConnectionId ?? connectionId, Data: toUtf8(command.input.Data) }) },
+        send: async (command: PostToConnectionCommand) => { command.input.Data && state.post.push({ ConnectionId: command.input.ConnectionId ?? connectionId, Data: command.input.Data as string }) },
       },
     })
     await connection_init({ server, event: connectionInitEvent, message: JSON.parse(connectionInitEvent.body) })
@@ -51,7 +50,7 @@ describe('messages/subscribe', () => {
       apiGatewayManagementApi: {
         send: async (command: PostToConnectionCommand|DeleteConnectionCommand) => {
           if (command instanceof DeleteConnectionCommand) { return state.delete.push({ ConnectionId: command.input.ConnectionId ?? connectionId }) }
-          command.input.Data && state.post.push({ ConnectionId: command.input.ConnectionId ?? connectionId, Data: toUtf8(command.input.Data) })
+          command.input.Data && state.post.push({ ConnectionId: command.input.ConnectionId ?? connectionId, Data: command.input.Data as string })
         },
       },
     })
@@ -80,7 +79,7 @@ describe('messages/subscribe', () => {
       apiGatewayManagementApi: {
         send: async (command: PostToConnectionCommand|DeleteConnectionCommand) => {
           if (command instanceof DeleteConnectionCommand) { return state.delete.push({ ConnectionId: command.input.ConnectionId ?? connectionId }) }
-          command.input.Data && state.post.push({ ConnectionId: command.input.ConnectionId ?? connectionId, Data: toUtf8(command.input.Data) })
+          command.input.Data && state.post.push({ ConnectionId: command.input.ConnectionId ?? connectionId, Data: command.input.Data as string })
         },
       },
       // eslint-disable-next-line @typescript-eslint/no-empty-function

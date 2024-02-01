@@ -17,6 +17,8 @@ export const disconnect: MessageHandler<null> = async ({ server, event }) => {
     const topicSubscriptions = await collect(server.models.subscription.query({
       IndexName: 'ConnectionIndex',
       ExpressionAttributeNames: { '#a': 'connectionId' },
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       ExpressionAttributeValues: { ':1': connectionId },
       KeyConditionExpression: '#a = :1',
     }))
