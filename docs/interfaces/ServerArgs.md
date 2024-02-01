@@ -24,7 +24,7 @@
 
 ### apiGatewayManagementApi
 
-• `Optional` **apiGatewayManagementApi**: [`MaybePromise`](../README.md#maybepromise)<[`ApiGatewayManagementApiSubset`](ApiGatewayManagementApiSubset.md)\>
+• `Optional` **apiGatewayManagementApi**: [`MaybePromise`](../README.md#maybepromise)<[`ApiGatewayManagementApi`](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-apigatewaymanagementapi/)\>
 
 An optional ApiGatewayManagementApi object
 

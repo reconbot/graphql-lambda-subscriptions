@@ -26,7 +26,6 @@ export {
   SubscribeArgs,
   SubscribePseudoIterable,
   MaybePromise,
-  ApiGatewayManagementApiSubset,
   APIGatewayWebSocketEvent,
   LoggerFunction,
   WebSocketResponse,

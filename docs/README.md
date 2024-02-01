@@ -8,7 +8,6 @@ graphql-lambda-subscriptions
 
 - [APIGatewayWebSocketEvent](interfaces/APIGatewayWebSocketEvent.md)
 - [APIGatewayWebSocketRequestContext](interfaces/APIGatewayWebSocketRequestContext.md)
-- [ApiGatewayManagementApiSubset](interfaces/ApiGatewayManagementApiSubset.md)
 - [PubSubEvent](interfaces/PubSubEvent.md)
 - [ServerArgs](interfaces/ServerArgs.md)
 - [StateFunctionInput](interfaces/StateFunctionInput.md)

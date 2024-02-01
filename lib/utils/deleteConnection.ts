@@ -1,4 +1,4 @@
-import { ApiGatewayManagementApi } from 'aws-sdk'
+import { ApiGatewayManagementApiClient, DeleteConnectionCommand } from '@aws-sdk/client-apigatewaymanagementapi'
 import { ServerClosure } from '../types'
 
 export const deleteConnection = (server: ServerClosure) =>
@@ -13,10 +13,10 @@ export const deleteConnection = (server: ServerClosure) =>
   }): Promise<void> => {
     server.log('deleteConnection', { connectionId: ConnectionId })
     const api = server.apiGatewayManagementApi ??
-      new ApiGatewayManagementApi({
+      new ApiGatewayManagementApiClient({
         apiVersion: 'latest',
         endpoint: `${domainName}/${stage}`,
       })
 
-    await api.deleteConnection({ ConnectionId }).promise()
+    await api.send(new DeleteConnectionCommand({ ConnectionId }))
   }

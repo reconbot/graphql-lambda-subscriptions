@@ -8,6 +8,8 @@ import { collect } from 'streaming-iterables'
 import { subscribe as pubsubSubscribe } from '../pubsub/subscribe'
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { join } from 'path'
+import { DeleteConnectionCommand, PostToConnectionCommand } from '@aws-sdk/client-apigatewaymanagementapi'
+import { toUtf8 } from '@aws-sdk/util-utf8-browser'
 
 const connectionId = '7rWmyMbMr'
 const ConnectionId = connectionId
@@ -27,8 +29,7 @@ describe('messages/subscribe', () => {
     const state: { delete: { ConnectionId: string }[], post: { ConnectionId: string, Data: string }[] } = { post: [], delete: [] }
     const server = await mockServerContext({
       apiGatewayManagementApi: {
-        postToConnection: (input) => ({ promise: async () => { state.post.push(input) } }),
-        deleteConnection: (input) => ({ promise: async () => { state.delete.push(input) } }),
+        send: async (command: PostToConnectionCommand) => { command.input.Data && state.post.push({ ConnectionId: command.input.ConnectionId ?? connectionId, Data: toUtf8(command.input.Data) }) },
       },
     })
     await connection_init({ server, event: connectionInitEvent, message: JSON.parse(connectionInitEvent.body) })
@@ -48,8 +49,10 @@ describe('messages/subscribe', () => {
     const state: { delete: { ConnectionId: string }[], post: { ConnectionId: string, Data: string }[] } = { post: [], delete: [] }
     const server = await mockServerContext({
       apiGatewayManagementApi: {
-        postToConnection: (input) => ({ promise: async () => { state.post.push(input) } }),
-        deleteConnection: (input) => ({ promise: async () => { state.delete.push(input) } }),
+        send: async (command: PostToConnectionCommand|DeleteConnectionCommand) => {
+          if (command instanceof DeleteConnectionCommand) { return state.delete.push({ ConnectionId: command.input.ConnectionId ?? connectionId }) }
+          command.input.Data && state.post.push({ ConnectionId: command.input.ConnectionId ?? connectionId, Data: toUtf8(command.input.Data) })
+        },
       },
     })
     await connection_init({ server, event: connectionInitEvent, message: JSON.parse(connectionInitEvent.body) })
@@ -75,8 +78,10 @@ describe('messages/subscribe', () => {
     const state: { delete: { ConnectionId: string }[], post: { ConnectionId: string, Data: string }[] } = { post: [], delete: [] }
     const server = await mockServerContext({
       apiGatewayManagementApi: {
-        postToConnection: (input) => ({ promise: async () => { state.post.push(input) } }),
-        deleteConnection: (input) => ({ promise: async () => { state.delete.push(input) } }),
+        send: async (command: PostToConnectionCommand|DeleteConnectionCommand) => {
+          if (command instanceof DeleteConnectionCommand) { return state.delete.push({ ConnectionId: command.input.ConnectionId ?? connectionId }) }
+          command.input.Data && state.post.push({ ConnectionId: command.input.ConnectionId ?? connectionId, Data: toUtf8(command.input.Data) })
+        },
       },
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       onError: undefined,
@@ -106,10 +111,11 @@ describe('messages/subscribe', () => {
     let sendErr = false
     const server = await mockServerContext({
       apiGatewayManagementApi: {
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        postToConnection: () => ({ promise: async () => { if (sendErr) { throw new Error('postToConnection Error') } } }),
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        deleteConnection: () => ({ promise: async () => { } }),
+        send: async (command: PostToConnectionCommand|DeleteConnectionCommand) => {
+          if (command instanceof PostToConnectionCommand) {
+            if (sendErr) { throw new Error('postToConnection Error') }
+          }
+        },
       },
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       onError: err => (error = err),

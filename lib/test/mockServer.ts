@@ -4,6 +4,7 @@ import { tables as arcTables } from '@architect/functions'
 import { buildServerClosure } from '../buildServerClosure'
 import { ServerArgs, ServerClosure } from '../types'
 import { subscribe } from '../pubsub/subscribe'
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 
 
 const typeDefs = `
@@ -47,15 +48,14 @@ export const mockServerArgs = async (args: Partial<ServerArgs> = {}): Promise<Se
   const tables = await arcTables()
 
   return {
-    dynamodb: tables._db,
+    dynamodb: tables._db as any as DynamoDBClient,
     schema,
     tableNames: {
       connections: ensureName(tables, 'Connection'),
       subscriptions: ensureName(tables, 'Subscription'),
     },
     apiGatewayManagementApi: {
-      postToConnection: () => ({ promise: async () => { } }),
-      deleteConnection: () => ({ promise: async () => { } }),
+      send: async () => ( async () => { } ),
     },
     onError: (err) => { console.log('onError'); throw err },
     ...args,

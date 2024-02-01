@@ -103,7 +103,7 @@ describe('Events', () => {
   })
 
   describe('onSubscribe', () => {
-    it('gets the right args')
+    xit('gets the right args')
 
     it('disconnects when it throws an error', async () => {
       const sideChannel = executeQuery('subscription { sideChannel }')

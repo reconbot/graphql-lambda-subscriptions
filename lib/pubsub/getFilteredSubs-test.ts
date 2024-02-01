@@ -99,6 +99,6 @@ describe('getFilteredSubs', () => {
     const subscriptions = await getFilteredSubs({ server, event: { topic } })
     assert.containSubset(subscriptions, [{ topic, id: '1234567' }])
   })
-  it('can match on connectionId')
-  it('can match on topic key')
+  xit('can match on connectionId')
+  xit('can match on topic key')
 })

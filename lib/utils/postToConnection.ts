@@ -1,4 +1,4 @@
-import { ApiGatewayManagementApi } from 'aws-sdk'
+import { ApiGatewayManagementApiClient, PostToConnectionCommand } from '@aws-sdk/client-apigatewaymanagementapi'
 import {
   ConnectionAckMessage,
   NextMessage,
@@ -8,7 +8,7 @@ import {
   PongMessage,
 } from 'graphql-ws'
 import { ServerClosure } from '../types'
-
+import { fromUtf8 } from '@aws-sdk/util-utf8-browser'
 type GraphqlWSMessages = ConnectionAckMessage | NextMessage | CompleteMessage | ErrorMessage | PingMessage | PongMessage
 
 export const postToConnection = (server: ServerClosure) =>
@@ -26,15 +26,14 @@ export const postToConnection = (server: ServerClosure) =>
     server.log('sendMessage', { connectionId: ConnectionId, message })
 
     const api = server.apiGatewayManagementApi ??
-      new ApiGatewayManagementApi({
+      new ApiGatewayManagementApiClient({
         apiVersion: 'latest',
         endpoint: `${domainName}/${stage}`,
       })
 
     await api
-      .postToConnection({
+      .send(new PostToConnectionCommand({
         ConnectionId,
-        Data: JSON.stringify(message),
-      })
-      .promise()
+        Data: fromUtf8(JSON.stringify(message)),
+      }))
   }

@@ -1,4 +1,4 @@
-import { StepFunctions } from 'aws-sdk'
+import { SFNClient, StartExecutionCommand } from '@aws-sdk/client-sfn'
 import { ConnectionInitMessage, MessageType } from 'graphql-ws'
 import { StateFunctionInput, MessageHandler } from '../types'
 import { postToConnection } from '../utils/postToConnection'
@@ -12,8 +12,8 @@ export const connection_init: MessageHandler<ConnectionInitMessage> =
       const payload = await server.onConnectionInit?.({ event, message }) ?? message.payload ?? {}
 
       if (server.pingpong) {
-        await new StepFunctions()
-          .startExecution({
+        await new SFNClient({})
+          .send(new StartExecutionCommand({
             stateMachineArn: server.pingpong.machine,
             name: event.requestContext.connectionId,
             input: JSON.stringify({
@@ -24,8 +24,7 @@ export const connection_init: MessageHandler<ConnectionInitMessage> =
               choice: 'WAIT',
               seconds: server.pingpong.delay,
             } as StateFunctionInput),
-          })
-          .promise()
+          }))
       }
 
       // Write to persistence

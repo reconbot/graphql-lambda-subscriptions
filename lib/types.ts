@@ -3,7 +3,8 @@
 import { ConnectionInitMessage, PingMessage, PongMessage } from 'graphql-ws'
 import { APIGatewayEventRequestContext, APIGatewayProxyEvent } from 'aws-lambda'
 import { GraphQLError, GraphQLResolveInfo, GraphQLSchema } from 'graphql'
-import { DynamoDB } from 'aws-sdk'
+import { ApiGatewayManagementApiClient } from '@aws-sdk/client-apigatewaymanagementapi'
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DDBClient } from './ddb/DDB'
 
 export interface ServerArgs {
@@ -19,11 +20,11 @@ export interface ServerArgs {
    * ```
    */
   schema: GraphQLSchema
-  dynamodb: MaybePromise<DynamoDB>
+  dynamodb: MaybePromise<DynamoDBClient>
   /**
    * An optional ApiGatewayManagementApi object
    */
-  apiGatewayManagementApi?: MaybePromise<ApiGatewayManagementApiSubset>
+  apiGatewayManagementApi?: MaybePromise<Pick<ApiGatewayManagementApiClient,'send'>>
   /**
    * An optional object or a promise for an object with DDB table names.
    *
@@ -78,13 +79,13 @@ export type MaybePromise<T> = T | Promise<T>
  * @internal
  */
 export type ServerClosure = {
-  dynamodb: DynamoDB
+  dynamodb: DynamoDBClient
   models: {
     subscription: DDBClient<Subscription, { id: string }>
     connection: DDBClient<Connection, {id: string }>
   }
   log: LoggerFunction
-  apiGatewayManagementApi?: ApiGatewayManagementApiSubset
+  apiGatewayManagementApi?: Pick<ApiGatewayManagementApiClient,'send'>
   pingpong?: {
     machine: string
     delay: number
@@ -190,14 +191,6 @@ export interface PubSubEvent {
 }
 
 export type MessageHandler<T> = (arg: { server: ServerClosure, event: APIGatewayWebSocketEvent, message: T }) => Promise<void>
-
-/*
-  Matches the ApiGatewayManagementApi class from aws-sdk but only provides the methods we use
-*/
-export interface ApiGatewayManagementApiSubset {
-  postToConnection(input: { ConnectionId: string, Data: string }): { promise: () => Promise<any> }
-  deleteConnection(input: { ConnectionId: string }): { promise: () => Promise<any> }
-}
 
 
 /**
