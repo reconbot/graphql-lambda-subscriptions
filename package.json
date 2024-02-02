@@ -2,8 +2,8 @@
   "name": "graphql-lambda-subscriptions",
   "version": "0.0.0-development",
   "description": "Graphql-WS compatible Lambda Powered Subscriptions",
-  "types": "./src/index.ts",
-  "main": "./src/index.ts",
+  "types": "./lib/index.ts",
+  "main": "./lib/index.ts",
   "exports": {
     "require": "./dist/index.js",
     "default": "./dist/index.js"
