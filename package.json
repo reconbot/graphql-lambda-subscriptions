@@ -4,10 +4,6 @@
   "description": "Graphql-WS compatible Lambda Powered Subscriptions",
   "types": "./lib/index.ts",
   "main": "./lib/index.ts",
-  "exports": {
-    "require": "./dist/index.js",
-    "default": "./dist/index.js"
-  },
   "engines": {
     "node": "^14.13 || >=16"
   },
@@ -39,6 +35,10 @@
   },
   "peerDependencies": {
     "@aws-sdk/client-dynamodb": ">= 3.0.0",
+    "@aws-sdk/client-apigatewaymanagementapi": ">= 3.0.0",
+    "@aws-sdk/client-sfn": ">= 3.0.0",
+    "@aws-sdk/lib-dynamodb": ">= 3.0.0",
+    "@aws-sdk/util-dynamodb": ">= 3.0.0",
     "graphql": ">= 16.0.0"
   },
   "devDependencies": {
