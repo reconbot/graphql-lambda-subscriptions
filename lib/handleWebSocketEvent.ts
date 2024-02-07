@@ -30,7 +30,7 @@ export const handleWebSocketEvent = (serverPromise: Promise<ServerClosure>): Sub
   }
 
   if (event.requestContext.eventType === 'MESSAGE') {
-    const message = event.body === null ? null : JSON.parse(event.body)
+    const message = !event.body ? null : JSON.parse(event.body)
     server.log('handleWebSocketEvent MESSAGE', { connectionId: event.requestContext.connectionId, type: message.type })
 
     if (message.type === MessageType.ConnectionInit) {

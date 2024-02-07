@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
 import { ConnectionInitMessage, PingMessage, PongMessage } from 'graphql-ws'
-import { APIGatewayEventRequestContext, APIGatewayProxyEvent } from 'aws-lambda'
+import { APIGatewayEventWebsocketRequestContextV2, APIGatewayProxyWebsocketEventV2 } from 'aws-lambda'
 import { GraphQLError, GraphQLResolveInfo, GraphQLSchema } from 'graphql'
 import { ApiGatewayManagementApiClient } from '@aws-sdk/client-apigatewaymanagementapi'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
@@ -49,21 +49,21 @@ export interface ServerArgs {
     delay: number
     timeout: number
   }>
-  onConnect?: (e: { event: APIGatewayWebSocketEvent }) => MaybePromise<void>
-  onDisconnect?: (e: { event: APIGatewayWebSocketEvent }) => MaybePromise<void>
+  onConnect?: (e: { event: APIGatewayProxyWebsocketEventV2 }) => MaybePromise<void>
+  onDisconnect?: (e: { event: APIGatewayProxyWebsocketEventV2 }) => MaybePromise<void>
   /*
     Takes connection_init event and returns the connectionInitPayload to be persisted. Throw if you'd like the connection to be disconnected. Useful for auth.
   */
   onConnectionInit?: (e: {
-    event: APIGatewayWebSocketEvent
+    event: APIGatewayProxyWebsocketEventV2
     message: ConnectionInitMessage
   }) => MaybePromise<Record<string, any>>
   onPing?: (e: {
-    event: APIGatewayWebSocketEvent
+    event: APIGatewayProxyWebsocketEventV2
     message: PingMessage
   }) => MaybePromise<void>
   onPong?: (e: {
-    event: APIGatewayWebSocketEvent
+    event: APIGatewayProxyWebsocketEventV2
     message: PongMessage
   }) => MaybePromise<void>
   onError?: (error: any, context: any) => MaybePromise<void>
@@ -97,7 +97,7 @@ export interface SubscriptionServer {
   /**
    * The handler for your websocket functions
    */
-  webSocketHandler: (event: APIGatewayWebSocketEvent) => Promise<WebSocketResponse>
+  webSocketHandler: (event: APIGatewayProxyWebsocketEventV2) => Promise<WebSocketResponse>
   /**
    * The handler for your step functions powered ping/pong support
    */
@@ -176,21 +176,13 @@ export interface StateFunctionInput {
   seconds: number
 }
 
-export interface APIGatewayWebSocketRequestContext extends APIGatewayEventRequestContext {
-  connectionId: string
-  domainName: string
-}
-
-export interface APIGatewayWebSocketEvent extends APIGatewayProxyEvent {
-  requestContext: APIGatewayWebSocketRequestContext
-}
 
 export interface PubSubEvent {
   topic: string
   payload: Record<string, any>
 }
 
-export type MessageHandler<T> = (arg: { server: ServerClosure, event: APIGatewayWebSocketEvent, message: T }) => Promise<void>
+export type MessageHandler<T> = (arg: { server: ServerClosure, event: APIGatewayProxyWebsocketEventV2, message: T }) => Promise<void>
 
 
 /**
@@ -202,7 +194,7 @@ export interface Connection {
   id: string
   createdAt: number
   /** Request context from $connect event */
-  requestContext: APIGatewayWebSocketRequestContext
+  requestContext: APIGatewayEventWebsocketRequestContextV2
   /** connection_init payload (post-parse) */
   payload: Record<string, any>
   /** has a pong been returned */
@@ -226,7 +218,7 @@ export interface Subscription {
   connectionId: string
   subscriptionId: string
   connectionInitPayload: Record<string, unknown>
-  requestContext: APIGatewayWebSocketRequestContext
+  requestContext: APIGatewayEventWebsocketRequestContextV2
   subscription: {
     query: string
     /** Actual value of variables for given field */

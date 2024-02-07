@@ -21,12 +21,10 @@ export { subscribe } from './pubsub/subscribe'
 export {
   ServerArgs,
   SubscriptionServer,
-  APIGatewayWebSocketRequestContext,
   SubscribeOptions,
   SubscribeArgs,
   SubscribePseudoIterable,
   MaybePromise,
-  APIGatewayWebSocketEvent,
   LoggerFunction,
   WebSocketResponse,
   StateFunctionInput,

@@ -1,3 +1,4 @@
+import { APIGatewayProxyWebsocketEventV2 } from 'aws-lambda'
 import { SubscribeMessage, MessageType } from 'graphql-ws'
 import { validate, parse } from 'graphql'
 import {
@@ -5,7 +6,7 @@ import {
   assertValidExecutionArguments,
   execute,
 } from 'graphql/execution/execute'
-import { APIGatewayWebSocketEvent, ServerClosure, MessageHandler, SubscribePseudoIterable, PubSubEvent, Subscription } from '../types'
+import { ServerClosure, MessageHandler, SubscribePseudoIterable, PubSubEvent, Subscription } from '../types'
 import { buildContext } from '../utils/buildContext'
 import { getResolverAndArgs } from '../utils/getResolverAndArgs'
 import { postToConnection } from '../utils/postToConnection'
@@ -157,7 +158,7 @@ const validateMessage = (server: ServerClosure) => (message: SubscribeMessage) =
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function executeQuery(server: ServerClosure, message: SubscribeMessage, contextValue: any, event: APIGatewayWebSocketEvent) {
+async function executeQuery(server: ServerClosure, message: SubscribeMessage, contextValue: any, event: APIGatewayProxyWebsocketEventV2) {
   server.log('executeQuery', { connectionId: event.requestContext.connectionId, query: message.payload.query })
 
   const result = await execute({
