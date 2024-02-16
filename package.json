@@ -68,7 +68,7 @@
     "graphql-ws": "5.15.0",
     "inside-out-async": "1.0.1",
     "mocha": "10.3.0",
-    "rollup": "4.11.0",
+    "rollup": "4.12.0",
     "rollup-plugin-node-resolve": "5.2.0",
     "semantic-release": "23.0.2",
     "typedoc": "0.25.8",
