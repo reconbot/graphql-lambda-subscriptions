@@ -21,6 +21,21 @@ describe('collapseKeys', () => {
       'a.3.b': 4,
     })
   })
+
+  it('excludes excluded keys', () => {
+    assert.deepEqual(collapseKeys({ a: 4, b: { c: 5, d: 'hi', e: { f: false } } }, ['a', 'b.d']), {
+      'b.c': 5,
+      'b.e.f': false,
+    })
+    assert.deepEqual(collapseKeys({ a: [1, 2, 3, { b: 4, c: [], d: null, e: undefined }], f: { g: [{ h: 5 }, { i: 6 }], j: [7, 8, 9] } }, ['f.g', 'f.j.1']), {
+      'a.0': 1,
+      'a.1': 2,
+      'a.2': 3,
+      'a.3.b': 4,
+      'f.j.0': 7,
+      'f.j.2': 9,
+    })
+  })
 })
 
 
