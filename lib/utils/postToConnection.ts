@@ -37,4 +37,8 @@ export const postToConnection = (server: ServerClosure) =>
         Data: JSON.stringify(message),
       })
       .promise()
+      .catch(err => {
+        if (err?.code !== 'GoneException') throw err
+        console.warn('Connection already closed at API Gateway, ignoring')
+      })
   }
