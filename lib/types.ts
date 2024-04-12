@@ -138,7 +138,7 @@ export type SubscribeHandler = <T extends PubSubEvent>(...args: any[]) => Subscr
 
 export interface SubscribePseudoIterable<T extends PubSubEvent, TSubscribeArgs extends SubscribeArgs = SubscribeArgs> {
   (...args: TSubscribeArgs): AsyncGenerator<T, never, unknown>
-  topic: string
+  topic: string | ((...args: TSubscribeArgs) => MaybePromise<string>)
   filter?: SubscriptionFilter<TSubscribeArgs, T['payload']>
   onSubscribe?: (...args: TSubscribeArgs) => MaybePromise<void | GraphQLError[]>
   onAfterSubscribe?: (...args: TSubscribeArgs) => MaybePromise<void>

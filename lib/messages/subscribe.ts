@@ -101,10 +101,11 @@ const setupSubscription: MessageHandler<SubscribeMessage> = async ({ server, eve
   }
 
   const filterData = typeof filter === 'function' ? await filter(root, args, context, info) : filter
+  const topicString = typeof topic === 'function' ? await topic(root, args, context, info) : topic
 
   const subscription: Subscription = {
     id: subscriptionId,
-    topic,
+    topic: topicString,
     filter: filterData || {},
     subscriptionId: message.id,
     subscription: message.payload,

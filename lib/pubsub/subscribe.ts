@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { PubSubEvent, SubscribeArgs, SubscribeOptions, SubscribePseudoIterable } from '../types'
+import { MaybePromise, PubSubEvent, SubscribeArgs, SubscribeOptions, SubscribePseudoIterable } from '../types'
 
 /**
  * Creates subscribe handler for use in your graphql schema.
@@ -10,7 +10,7 @@ import { PubSubEvent, SubscribeArgs, SubscribeOptions, SubscribePseudoIterable }
  * @param options - Optional callbacks for filtering, and lifecycle events.
  */
 export const subscribe = <T extends PubSubEvent, TRoot extends any = any, TArgs extends Record<string, any> = any, TContext extends any = any>(
-  topic: T['topic'],
+  topic: T['topic'] | ((...args: SubscribeArgs) => MaybePromise<string>),
   options: SubscribeOptions<T, SubscribeArgs<TRoot, TArgs, TContext>> = {},
 ): SubscribePseudoIterable<T, SubscribeArgs<TRoot, TArgs, TContext>> => {
   const {
