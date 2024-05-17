@@ -63,7 +63,7 @@
     "esbuild": "0.21.3",
     "esbuild-register": "3.5.0",
     "eslint": "8.57.0",
-    "eslint-plugin-mocha-no-only": "1.1.1",
+    "eslint-plugin-mocha-no-only": "1.2.0",
     "graphql": "16.8.1",
     "graphql-ws": "5.16.0",
     "inside-out-async": "2.0.2",
