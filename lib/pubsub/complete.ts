@@ -9,9 +9,9 @@ import { getResolverAndArgs } from '../utils/getResolverAndArgs'
 import { isArray } from '../utils/isArray'
 import { getFilteredSubs } from './getFilteredSubs'
 
-export const complete = (serverPromise: Promise<ServerClosure> | ServerClosure): SubscriptionServer['complete'] => async event => {
+export const complete = (serverPromise: Promise<ServerClosure> | ServerClosure): SubscriptionServer['complete'] => async (event, excludeKeys) => {
   const server = await serverPromise
-  const subscriptions = await getFilteredSubs({ server, event })
+  const subscriptions = await getFilteredSubs({ server, event, excludeKeys })
   server.log('pubsub:complete', { event, subscriptions })
 
   const iters = subscriptions.map(async (sub) => {
