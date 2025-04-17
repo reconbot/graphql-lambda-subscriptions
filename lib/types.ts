@@ -106,13 +106,13 @@ export interface SubscriptionServer {
    *
    * The payload if present will be used to match against any filters the subscriptions might have.
    */
-  publish: (event: { topic: string, payload: Record<string, any>}) => Promise<void>
+  publish: (event: { topic: string, payload: Record<string, any>}, excludeKeys?: string[]) => Promise<void>
   /**
    * Send a complete message and end all relevant subscriptions. This might take some time depending on how many subscriptions there are.
    *
    * The payload if present will be used to match against any filters the subscriptions might have.
    */
-  complete: (event: { topic: string, payload?: Record<string, any> }) => Promise<void>
+  complete: (event: { topic: string, payload?: Record<string, any> }, excludeKeys?: string[]) => Promise<void>
 }
 
 /**
