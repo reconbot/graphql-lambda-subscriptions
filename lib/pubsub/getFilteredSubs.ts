@@ -2,7 +2,13 @@
 import { collect } from 'streaming-iterables'
 import { ServerClosure, Subscription } from '../types'
 
-export const getFilteredSubs = async ({ server, event }: { server: Omit<ServerClosure, 'gateway'>, event: { topic: string, payload?: Record<string, any> } }): Promise<Subscription[]> => {
+export const getFilteredSubs = async ({
+  server,
+  event,
+}: {
+  server: Omit<ServerClosure, 'gateway'>
+  event: { topic: string, payload?: Record<string, any> }
+}): Promise<Subscription[]> => {
   if (!event.payload || Object.keys(event.payload).length === 0) {
     server.log('getFilteredSubs', { event })
 
@@ -18,18 +24,35 @@ export const getFilteredSubs = async ({ server, event }: { server: Omit<ServerCl
   const flattenPayload = collapseKeys(event.payload)
 
   const filterExpressions: string[] = []
-  const expressionAttributeValues: { [key: string]: string | number | boolean } = {}
+  const expressionAttributeValues: {
+    [key: string]: string | number | boolean
+  } = {}
   const expressionAttributeNames: { [key: string]: string } = {}
 
   let attributeCounter = 0
   for (const [key, value] of Object.entries(flattenPayload)) {
     const aliasNumber = attributeCounter++
-    expressionAttributeNames[`#${aliasNumber}`] = key
+    const keyParts = key.split('.')
+    const keyPartsAttributeName = keyParts
+      .map((part, index) => `#${aliasNumber + index}`)
+      .join('.')
+    key.split('.').forEach((keyPart, index) => {
+      expressionAttributeNames[`#${aliasNumber + index}`] = keyPart
+      attributeCounter += index
+    })
     expressionAttributeValues[`:${aliasNumber}`] = value
-    filterExpressions.push(`(#filter.#${aliasNumber} = :${aliasNumber} OR attribute_not_exists(#filter.#${aliasNumber}))`)
+
+    filterExpressions.push(
+      `(#filter.${keyPartsAttributeName} = :${aliasNumber} OR attribute_not_exists(#filter.${keyPartsAttributeName}))`,
+    )
   }
 
-  server.log('getFilteredSubs', { event, expressionAttributeNames, expressionAttributeValues, filterExpressions })
+  server.log('getFilteredSubs', {
+    event,
+    expressionAttributeNames,
+    expressionAttributeValues,
+    filterExpressions,
+  })
 
   const iterator = server.models.subscription.query({
     IndexName: 'TopicIndex',
@@ -54,7 +77,11 @@ export const collapseKeys = (
 ): Record<string, number | string | boolean> => {
   const record = {}
   for (const [k1, v1] of Object.entries(obj)) {
-    if (typeof v1 === 'string' || typeof v1 === 'number' || typeof v1 === 'boolean') {
+    if (
+      typeof v1 === 'string' ||
+      typeof v1 === 'number' ||
+      typeof v1 === 'boolean'
+    ) {
       record[k1] = v1
       continue
     }
