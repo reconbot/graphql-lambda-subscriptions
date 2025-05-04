@@ -15,11 +15,11 @@
 
 ### complete
 
-• **complete**: (`event`: { `payload?`: `Record`<`string`, `any`\> ; `topic`: `string`  }) => `Promise`<`void`\>
+• **complete**: (`event`: { `payload?`: `Record`<`string`, `any`\> ; `topic`: `string` }, `excludeKeys?`: `string`[]) => `Promise`<`void`\>
 
 #### Type declaration
 
-▸ (`event`): `Promise`<`void`\>
+▸ (`event`, `excludeKeys`): `Promise`<`void`\>
 
 Send a complete message and end all relevant subscriptions. This might take some time depending on how many subscriptions there are.
 
@@ -32,6 +32,7 @@ The payload if present will be used to match against any filters the subscriptio
 | `event` | `Object` |
 | `event.payload?` | `Record`<`string`, `any`\> |
 | `event.topic` | `string` |
+| `excludeKeys?` | `string`[] |
 
 ##### Returns
 
@@ -41,11 +42,11 @@ ___
 
 ### publish
 
-• **publish**: (`event`: { `payload`: `Record`<`string`, `any`\> ; `topic`: `string`  }) => `Promise`<`void`\>
+• **publish**: (`event`: { `payload`: `Record`<`string`, `any`\> ; `topic`: `string` }, `excludeKeys?`: `string`[]) => `Promise`<`void`\>
 
 #### Type declaration
 
-▸ (`event`): `Promise`<`void`\>
+▸ (`event`, `excludeKeys`): `Promise`<`void`\>
 
 Publish an event to all relevant subscriptions. This might take some time depending on how many subscriptions there are.
 
@@ -58,6 +59,7 @@ The payload if present will be used to match against any filters the subscriptio
 | `event` | `Object` |
 | `event.payload` | `Record`<`string`, `any`\> |
 | `event.topic` | `string` |
+| `excludeKeys?` | `string`[] |
 
 ##### Returns
 
