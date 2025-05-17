@@ -48,7 +48,7 @@
     "@microsoft/api-extractor": "7.52.8",
     "@types/architect__sandbox": "3.3.6",
     "@types/aws-lambda": "8.10.149",
-    "@types/chai": "5.0.1",
+    "@types/chai": "5.2.2",
     "@types/chai-subset": "1.3.6",
     "@types/debug": "4.1.12",
     "@types/mocha": "10.0.10",
